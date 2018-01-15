@@ -15,12 +15,9 @@ Mexico City
 # Import modules
 import os as _os
 import numpy as _np
-
 from scipy.sparse.linalg import spsolve as _spsolve
-#from scipy.sparse.linalg import lsqr as _lsqr
 
-import _gridsio as _io
-import files as _files
+from methods import *
 
 
 # ==============================================================================
@@ -222,7 +219,7 @@ def concentration_time(flowdir, dem, distance, method=0, cell_acc=0,
     Elev[_np.isnan(Elev)] = 0
     Dist2[_np.isnan(Dist2)] = 0
 
-    # Cells conectivity
+    # Cells connectivity
     Ind, Indc = cell_direction(flowdir, pixels)
     A = matrix_coefficients(Ind, Indc)
 
@@ -249,7 +246,7 @@ def concentration_time(flowdir, dem, distance, method=0, cell_acc=0,
         elif method == 1:  # Chow method
             tc = 0.01 * (Dist2 / (MSM * 100) ** 0.5) ** 0.64
 
-        if cell_acc == 0:  # ponderate concentration time
+        if cell_acc == 0:  # weight concentration time
             max_index = _np.argmax(Dist2)
             tc = tc[max_index] * Dist2 / Dist2[max_index]
 
@@ -262,7 +259,7 @@ def concentration_time(flowdir, dem, distance, method=0, cell_acc=0,
             tc1 = 0.0003455 * (dist / slope ** 0.5) ** 0.77
         elif method == 1:  # Chow method
             tc1 = 0.01 * (dist / (slope * 100) ** 0.5) ** 0.64
-        # compute cummulative time
+        # compute cumulative time
         tc = _spsolve(A, tc1)
         #tc = _lsqr(A, tc1, iter_lim=100, atol=1e-10, btol=1e-10)[0]
 

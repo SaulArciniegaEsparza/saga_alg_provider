@@ -29,4 +29,16 @@ tools.terrain_analysis._env = environment
 tools.tables._env = environment
 
 # Set GridObj
+tools.grids._io = data_manager.grids
+
+user_tools.hydrology._io = data_manager.grids
 user_tools.methods._io = data_manager.grids
+
+# Set utilities.files as _files
+tools.grids._files = utilities.files
+
+user_tools.methods._files = utilities.files
+
+# Set utilities.data_validation as _validation
+tools.grids._validation = utilities.data_validation
+

@@ -35,7 +35,7 @@ def cell_direction(flowdir, pixels=None):
     if type(flowdir) is _io.GridObj:
         flowdir = flowdir.get_data()
     elif type(flowdir) is not _np.ndarray:
-        raise TypeError('Bad pixels parameter type {}'.format(str(type(pixels))))
+        raise TypeError('Wrong pixels parameter type {}'.format(str(type(pixels))))
     data = flowdir.astype(int)
     r, c = data.shape
     del(flowdir)   # delete flow direction

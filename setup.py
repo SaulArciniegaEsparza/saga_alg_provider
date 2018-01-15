@@ -15,6 +15,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=['numpy',
                       'scipy',
-                      'pandas',
-                      '']
+                      'pandas']
 )

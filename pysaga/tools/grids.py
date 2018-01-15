@@ -12,37 +12,43 @@ Mexico City
 # env is the provider class
 import os as _os
 import numpy as _np
-import pandas.core.series.Series as _Series
+import pandas as _pd
 import itertools as _itertools
 
-import files as _files
 import projection as _projection
 from tables import get_attribute_table as _get_attribute_table
-import _gridsio as _io
+
+_Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
+_Serie = type(_pd.Series())     # get pandas Serie Type
 
 
-#==============================================================================
+# ==============================================================================
 # Library: grid_analysis
-#==============================================================================
+# ==============================================================================
 
-# Calculation of accumulated cost, either isotropic or anisotropic, if direction
-# of maximum cost is specified.
-# library: grid_analysis  tool: 0
-# INPUTS
-#  accumulated        [string] output grid of accumulated cost
-#  allocation         [string] output allocation grid for destinations
-#  cost               [string] input local cost grid
-#  destinations       [string] must be shape file or a grid file with the location
-#                      of destinations
-#  direction          [string] optional input grid with the direction of maximum cost
-#  dir_unit           [int] units of direction grid
-#                      [0] radians (default)
-#                      [1] degree
-#  dir_k              [int, float] k factor for effective friction
-#                      stated friction ^ {cos(DifAngle)^k}
-#  threshold          [int, float] Threshold for different route By default 0
+
 def accumulated_cost(accumulated, allocation, cost, destinations, direction=None,
                      dir_unit=0, dir_k=2, threshold=0):
+    """
+    Calculation of accumulated cost, either isotropic or anisotropic, if direction
+    of maximum cost is specified.
+    library: grid_analysis  tool: 0
+
+    INPUTS
+     accumulated        [string] output grid of accumulated cost
+     allocation         [string] output allocation grid for destinations
+     cost               [string] input local cost grid
+     destinations       [string] must be shape file or a grid file with the location
+                         of destinations
+     direction          [string] optional input grid with the direction of maximum cost
+     dir_unit           [int] units of direction grid
+                         [0] radians (default)
+                         [1] degree
+     dir_k              [int, float] k factor for effective friction
+                         stated friction ^ {cos(DifAngle)^k}
+     threshold          [int, float] Threshold for different route By default 0
+    """
+
     # Check inputs
     accumulated = _files.default_file_ext(accumulated, 'grid')
     allocation = _files.default_file_ext(allocation, 'grid')
@@ -2412,7 +2418,7 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
         filename = _files.create_filename(_env.workdir, 'txt', 'Auxiliar_grid_reclass')
         _np.savetxt(filename, table, fmt='%.6f', delimiter='\t', header=header, comments='')
 
-    elif type(table) is _Series:  # Pandas Data Frame
+    elif type(table) in (_Frame, _Serie):  # Pandas Data Frame
         # Get names for output grids
         header = list(table.columns)
 
