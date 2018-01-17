@@ -1,6 +1,13 @@
 """
 SAGA GIS algorithm provider
-Grids tools
+Grids tools:
+    grid_analysis
+    grid_calculus
+    grid_filter
+    grid_gridding
+    grid_spline
+    grid_tools
+
 
 Author:
 Saul Arciniega Esparza
@@ -2319,63 +2326,73 @@ def reclassify_values(outgrid, ingrid, single=None, vrange=None,
     return(flag)  # reclassify_values()
 
 
-# Crop grids to valid data cells
-# library: grids_tools  tool: 17
-# INPUTS
-#  outgrid       [string] output grif
-#  ingrid        [string] input grid
 def crop_to_data(outgrid, ingrid):
+    """
+    Crop grids to valid data cells
+
+    library: grids_tools  tool: 17
+
+    INPUTS
+     outgrid       [string] output grid
+     ingrid        [string] input grid
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    ingrid = _files.default_file_ext(ingrid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '17', '-INPUT', ingrid, '-OUTPUT',
            outgrid]
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=ingrid);
+    _validation.validate_crs(ingrid, [outgrid])
     return(flag)  # crop_to_data()
 
 
-# Invert data/no data of a grid
-# library: grids_tools  tool: 18
-# INPUTS
-#  outgrid       [string] output grid
-#  ingrid        [string] input grid
 def invert_grid_nodata(outgrid, ingrid):
+    """
+    Invert data/no data of a grid
+
+    library: grids_tools  tool: 18
+
+    INPUTS
+     outgrid       [string] output grid
+     ingrid        [string] input grid
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    ingrid = _files.default_file_ext(ingrid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '18', '-INPUT', ingrid,
            '-OUTPUT', outgrid]
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=ingrid);
+    _validation.validate_crs(ingrid, [outgrid])
     return(flag)  # invert_grid_nodata()
 
 
-# Creates an index grid according to the cell values either in ascending
-# or descending order.
-# library: grids_tools  tool: 21
-# INPUTS
-#  outgrid        [string] output index grid
-#  grid           [string] input grid file
-#  order          [int] sorting order method
-#                   [0] ascending (default)
-#                   [1] descending
 def grid_cell_index(outgrid, grid, order=0):
+    """
+    Creates an index grid according to the cell values either in ascending
+    or descending order.
+
+    library: grids_tools  tool: 21
+
+    INPUTS
+     outgrid        [string] output index grid
+     grid           [string] input grid file
+     order          [int] sorting order method
+                      [0] ascending (default)
+                      [1] descending
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    grid = _files.default_file_ext(grid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    grid = _validation.input_file(grid, 'grid', False)
 
     # Check additional inputs
-    if order < 0 or order > 1:
-        order = 0
-    order = str(order)
+    order = _validation.input_parameter(order, 0, vrange=[0, 1], dtypes=[int])
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '21', '-GRID', grid, '-INDEX',
@@ -2384,28 +2401,30 @@ def grid_cell_index(outgrid, grid, order=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [outgrid])
     return(flag)  # grid_cell_index()
 
 
-# Creates several grids using a classified grid and a table with data values
-# One grid is created for each column using the input table (except to the ID column)
-# and takes for each class the value specified in the column
-# library: grids_tools  tool: 22
-# INPUTS
-#  outgrid        [string] basename for the output grids. Number of output grids
-#                  depends of the number of columns in table
-#  grid           [string] input classified grid
-#  table          [string, list, tuple, array, DataFrame] input .txt table file delimited by
-#                  tabs and with 1 line of headers. table can be a nxm numpy array, list or tuple
-#                  in which case, field_id must be an integer. table can also be a pandas DataFrame
-#  field_id       [int, string] field id or name of the input table. When table is an array,
-#                  list or tuple, field_id must be an integer.
 def grids_from_classified_grid(outgrid, grid, table, field_id=0):
-    # Check inputs
-    grid = _files.default_file_ext(grid, 'grid', False)
+    """
+    Creates several grids using a classified grid and a table with data values
+    One grid is created for each column using the input table (except to the ID column)
+    and takes for each class the value specified in the column
 
+    library: grids_tools  tool: 22
+
+    INPUTS
+     outgrid        [string] basename for the output grids. Number of output grids
+                     depends of the number of columns in table
+     grid           [string] input classified grid
+     table          [string, list, tuple, array, DataFrame] input .txt table file delimited by
+                     tabs and with 1 line of headers. table can be a nxm numpy array, list or tuple
+                     in which case, field_id must be an integer. table can also be a pandas DataFrame
+     field_id       [int, string] field id or name of the input table. When table is an array,
+                     list or tuple, field_id must be an integer.
+    """
+    # Check inputs
+    grid = _validation.input_file(grid, 'grid', False)
     # Check table
     if type(table) in [list, tuple, _np.ndarray]:  # list or array as table
         table = _np.array(table)
@@ -2418,8 +2437,10 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
         header = '\t'.join(header)
 
         # temporary table file
-        filename = _files.create_filename(_env.workdir, 'txt', 'Auxiliar_grid_reclass')
-        _np.savetxt(filename, table, fmt='%.6f', delimiter='\t', header=header, comments='')
+        filename = _files.create_filename(_env.workdir, 'txt',
+                                          'Auxiliar_grid_reclass')
+        _np.savetxt(filename, table, fmt='%.6f', delimiter='\t',
+                    header=header, comments='')
 
     elif type(table) in (_Frame, _Serie):  # Pandas Data Frame
         # Get names for output grids
@@ -2435,7 +2456,8 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
         names.remove(field_name)
 
         # temporary table file
-        filename = _files.create_filename(_env.workdir, 'txt', 'Auxiliar_grid_reclass')
+        filename = _files.create_filename(_env.workdir, 'txt',
+                                        'Auxiliar_grid_reclass')
         table.to_csv(filename, '\t', index=False)
 
     elif type(table) is str:  # Input table file
@@ -2456,12 +2478,12 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
         names.remove(field_name)
 
     else:  # Wrong input argument
-        raise TypeError('Wrong table parameter. table must be an array, a Pandas'\
+        raise TypeError('Wrong table parameter. table must be an array, a Pandas'
                         'DataFrame or a .txt file delimited by tabs')
 
     # Create output grids file names
     basename = _os.path.splitext(outgrid)[0]
-    out_grids = [basename + name + '.sgrd' for name in names]
+    out_grids = _validation.output_file([basename + name for name in names], 'grid')
     grid_list = ';'.join(out_grids)
 
     # Create cmd
@@ -2471,49 +2493,53 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    for outgrid in out_grids:
-        if not _files.has_crs_file(outgrid):  # set first input layer crs
-            _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, out_grids)
     return(flag)  # grids_from_classified_grid()
 
 
-# Creates a new user specified Grid System for use with other tools
-# library: grids_tools  tool: 23
-# INPUTS
-#  outgrid       [string] output grid
-#  value         [int, float] initialization value to create a constant grid
-#  cellsize      [int, float] cellsize of the grid system
-#  adjust        [int] method to adjust the extent to match the cellsize
-#                 [0] extent to cell size (default)
-#                 [1] cell size to left-right extent
-#                 [2] cell size to bottom-top extent
-#  xoffset       [int, float] lower left corner in W-E. Positive values result
-#                 in a shift in E direction and negative in W direction
-#  yoffset       [int, float] lower left corner in S-N. Positive values result
-#                 in a shift in N direction and negative in S direction
-#  corner        [list, tuple, array] 4 element object tah defines the lower-left
-#                 corner of the grid system. corner must contain [xmin, cols, ymin, rows]
-#  extent        [list, tuple, array] 4 element object tah defines the lower-left
-#                 corner and the upper-right corner of the grid system.
-#                 extent must contain [xmin, xmax, ymin, ymax]
-#  grids         [string, list, tuple] grid file or list of grid files to define the
-#                 grid system extension
-#  shapes        [string, list, tuple] shape file or list of shape files to define the
-#                 grid system extension
-# NOTE: first input parameter (corner, extent, grids, shapes) is used to define the
-# grid system extension
 def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffset=0,
-                       corner=None, extent=None, grids=None, shapes=None):
+                       corner=None, extent=None, grids=None, shapes=None, proj=None):
+    """
+    Creates a new user specified Grid System for use with other tools
+
+    library: grids_tools  tool: 23
+
+    INPUTS
+     outgrid       [string] output grid
+     value         [int, float] initialization value to create a constant grid
+     cellsize      [int, float] cellsize of the grid system
+     adjust        [int] method to adjust the extent to match the cellsize
+                    [0] extent to cell size (default)
+                    [1] cell size to left-right extent
+                    [2] cell size to bottom-top extent
+     xoffset       [int, float] lower left corner in W-E. Positive values result
+                    in a shift in E direction and negative in W direction
+     yoffset       [int, float] lower left corner in S-N. Positive values result
+                    in a shift in N direction and negative in S direction
+     corner        [list, tuple, array] 4 element object tah defines the lower-left
+                    corner of the grid system. corner must contain [xmin, cols, ymin, rows]
+     extent        [list, tuple, array] 4 element object tah defines the lower-left
+                    corner and the upper-right corner of the grid system.
+                    extent must contain [xmin, xmax, ymin, ymax]
+     grids         [string, list, tuple] grid file or list of grid files to define the
+                    grid system extension
+     shapes        [string, list, tuple] shape file or list of shape files to define the
+                    grid system extension
+     proj          [string] proj4 parameters. If grids or shapes is input, proj is ignored
+                    and first grid or shape is used as crs. By default proj is None
+    NOTE: first input parameter (corner, extent, grids, shapes) is used to define the
+    grid system extension
+    """
+
     # Check inputs
-    outgrid = outgrid = _files.default_file_ext(outgrid, 'grid')
+    outgrid = _validation.output_file(outgrid, 'grid')
 
     # Convert to string
+    adjust = _validation.input_parameter(adjust, 0, vrange=[0, 2], dtypes=[int])
     if xoffset == 0 and yoffset == 0:
         offset = False
     else:
         offset = True
-    if adjust < 0 or adjust > 2:
-        adjust = 0
 
     xoffset, yoffset = str(xoffset), str(yoffset)
     value, cellsize, adjust = str(value), str(cellsize), str(adjust)
@@ -2573,26 +2599,30 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        if type(grids) in [list, tuple]:
-            _projection.set_crs(grids=outgrid, crs_method=1, proj=grids[0]);
-        elif type(shapes) in [list, tuple]:
-            _projection.set_crs(grids=outgrid, crs_method=1, proj=shapes[0]);
-    return (flag)  # masking(()
+    if type(grids) in [list, tuple]:
+        _validation.validate_crs(grids[0], [outgrid])
+    elif type(shapes) in [list, tuple]:
+        _validation.validate_crs(shapes[0], [outgrid])
+    elif type(proj) is str:
+        _projection.set_crs(grids=outgrid, proj=proj)
+    return(flag)  # create_grid_system()
 
 
-
-# Mask a grid with other grid
-# library: grids_tools  tool: 24
-# INPUTS
-#  outgrid       [string] output masked grid
-#  ingrid        [string] input grid
-#  mask          [string] mask grid
 def masking(outgrid, ingrid, mask):
+    """
+    Mask a grid with other grid
+
+    library: grids_tools  tool: 24
+
+    INPUTS
+     outgrid       [string] output masked grid
+     ingrid        [string] input grid
+     mask          [string] mask grid
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    ingrid = _files.default_file_ext(ingrid, 'grid', False)
-    mask = _files.default_file_ext(mask, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    mask = _validation.input_file(mask, 'grid', False)
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '24', '-GRID', ingrid, '-MASK',
@@ -2601,41 +2631,43 @@ def masking(outgrid, ingrid, mask):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=ingrid);
+    _validation.validate_crs(ingrid, [outgrid])
     return(flag)  # masking()
 
 
-# Close gaps of a grid data set (i.e. eliminate no data values)
-# using Spline interpolation
-# library: grids_tools  tool: 25
-# INPUTS
-#  outgrid        [string] output grid file name
-#  grid           [string] input grid file name
-#  mask           [string] optional grid mask file
-#  cells          [int] maximum number of cells to process. Is ignored if set to zero
-#  points         [int] maximum number of points
-#  local_points   [int] number of points for the local interpolation
-#  extended       [boolean] if True, extended neighbourhood  is used
-#  neighbours     [int] neighbours method
-#                  [0] Neumann (default)
-#                  [1] Moore
-#  radius         [int] number of cells to use as radius
-#  relaxation     [int, float] relaxation value
 def close_gaps_with_spline(outgrid, grid, mask=None, cells=0, points=100,
                            local_points=20, extended=False, neighbours=0,
                            radius=0, relaxation=0):
+    """
+    Close gaps of a grid data set (i.e. eliminate no data values)
+    using Spline interpolation
+
+    library: grids_tools  tool: 25
+
+    INPUTS
+     outgrid        [string] output grid file name
+     grid           [string] input grid file name
+     mask           [string] optional grid mask file
+     cells          [int] maximum number of cells to process. Is ignored if set to zero
+     points         [int] maximum number of points
+     local_points   [int] number of points for the local interpolation
+     extended       [boolean] if True, extended neighbourhood  is used
+     neighbours     [int] neighbours method
+                     [0] Neumann (default)
+                     [1] Moore
+     radius         [int] number of cells to use as radius
+     relaxation     [int, float] relaxation value
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    grid = _files.default_file_ext(grid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    grid = _validation.input_file(grid, 'grid', False)
     if type(mask) is str:
-        mask = _files.default_file_ext(mask, 'grid', False)
+        mask = _validation.input_file(mask, 'grid', False)
     else:
         mask = 'NULL'
 
     # Check additional inputs
-    if neighbours < 0 or neighbours > 1:
-        neighbours = 0
+    neighbours = _validation.input_parameter(neighbours, 0, vrange=[0], dtypes=[int])
     cells, points, local_points = str(int(cells)), str(int(points)), str(int(local_points))
     extended, neighbours = str(int(extended)), str(int(neighbours))
     radius, relaxation = str(int(radius)), str(int(relaxation))
@@ -2649,45 +2681,45 @@ def close_gaps_with_spline(outgrid, grid, mask=None, cells=0, points=100,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [outgrid])
     return(flag)  # close_gaps_with_spline()
 
 
-#
-# library: grids_tools  tool: 28
-# INPUTS
-#  outgrid        [string] output grid file
-#  grid           [string] input grid file
-#  method         [int] operation to do
-#                  [0] shrink (default)
-#                  [1] expand
-#                  [2] shrink and expand
-#                  [3] expand and shrink
-#  mode           [int] search mode
-#                  [0] Square
-#                  [1] Circle (default)
-#  radius         [int] number of cells to use as radius distance
-#  expand         [int] expand method
-#                  [0] minimum
-#                  [1] maximum
-#                  [2] mean
-#                  [3] majority (default)
 def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
+    """
+    Regions with valid data in the input grid can be shrinking or expanded
+    by a certain amount (radius). Shrinking just sets the border of regions
+    with valid data to NoData, expanding sets NoData cells along the border
+    of regions with valid data to a new valid value
+
+    library: grids_tools  tool: 28
+
+    INPUTS
+     outgrid        [string] output grid file
+     grid           [string] input grid file
+     method         [int] operation to do
+                     [0] shrink (default)
+                     [1] expand
+                     [2] shrink and expand
+                     [3] expand and shrink
+     mode           [int] search mode
+                     [0] Square
+                     [1] Circle (default)
+     radius         [int] number of cells to use as radius distance
+     expand         [int] expand method
+                     [0] minimum
+                     [1] maximum
+                     [2] mean
+                     [3] majority (default)
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    grid = _files.default_file_ext(grid, 'grid', False)
-
+    outgrid = _validation.output_file(outgrid, 'grid')
+    grid = _validation.input_file(grid, 'grid', False)
     # Check additional inputs
-    if method < 0 or method > 3:
-        method = 0
-    if mode < 0 or mode > 1:
-        mode = 1
-    if expand < 0 or expand > 3:
-        expand = 3
-
-    method, mode = str(int(method)), str(int(mode))
-    radius, expand = str(int(radius)), str(int(expand))
+    method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
+    mode = _validation.input_parameter(mode, 0, vrange=[0, 1], dtypes=[int])
+    expand = _validation.input_parameter(expand, 0, vrange=[0, 3], dtypes=[int])
+    radius = str(int(radius))
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '28', '-INPUT', grid, '-RESULT',
@@ -2697,21 +2729,23 @@ def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [outgrid])
     return (flag)  # copy_grid()
 
 
-
-# Copy a grid file
-# library: grids_tools  tool: 33
-# INPUTS
-#  outgrid        [string] output grid file
-#  grid           [string] input grid file
 def copy_grid(outgrid, grid):
+    """
+     Copy a grid file
+
+    library: grids_tools  tool: 33
+
+    INPUTS
+     outgrid        [string] output grid file
+     grid           [string] input grid file
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    grid = _files.default_file_ext(grid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    grid = _validation.input_file(grid, 'grid', False)
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '33', '-GRID', grid, '-COPY', outgrid]
@@ -2719,20 +2753,23 @@ def copy_grid(outgrid, grid):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [outgrid])
     return(flag)  # copy_grid()
 
 
-# Invert a grid data values, highest value becomes the lowest and vice versa
-# library: grids_tools  tool: 34
-# INPUTS
-#  outgrid        [string] output grid file
-#  grid           [string] input grid file
 def invert_grid(outgrid, grid):
+    """
+    Invert a grid data values, highest value becomes the lowest and vice versa
+
+    library: grids_tools  tool: 34
+
+    INPUTS
+     outgrid        [string] output grid file
+     grid           [string] input grid file
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    grid = _files.default_file_ext(grid, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    grid = _validation.input_file(grid, 'grid', False)
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '34', '-GRID', grid, '-INVERSE', outgrid]
@@ -2740,6 +2777,5 @@ def invert_grid(outgrid, grid):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [outgrid])
     return(flag)  # invert_grid()
