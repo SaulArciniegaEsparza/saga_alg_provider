@@ -10,10 +10,6 @@ Mexico City
 """
 
 # env is the provider class
-import os as _os
-import numpy as _np
-
-import projection as _projection
 
 
 # ==============================================================================
@@ -100,9 +96,7 @@ def sunrise_and_sunset(sunrise, sunset, day_len, grid, year=2017,
     else:
         date = '%d-%s-%s' % (year, str(month).zfill(2), str(day).zfill(2))
 
-    if time < 0 or time > 1:
-        time = 0
-    time = str(time)
+    time = _validation.input_parameter(int(time), 0, vrange=[0, 1], dtypes=[int])
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'climate_tools', '9', '-TARGET', grid, '-SUNRISE',
@@ -111,11 +105,6 @@ def sunrise_and_sunset(sunrise, sunset, day_len, grid, year=2017,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(sunrise):
-        _projection.set_crs(grids=sunrise, crs_method=1, proj=grid);
-    if not _files.has_crs_file(sunset):
-        _projection.set_crs(grids=sunset, crs_method=1, proj=grid);
-    if not _files.has_crs_file(day_len):
-        _projection.set_crs(grids=day_len, crs_method=1, proj=grid);
+    _validation.validate_crs(grid, [sunrise, sunset, day_len])
     return(flag)  # sunrise_and_sunset()
 

@@ -15,24 +15,26 @@ import pandas as _pd
 import numpy as _np
 import shapefile as _shp
 
-import files as _files
 import projection as _projection
 
 
-#==============================================================================
+# ==============================================================================
 # Library: user tools
-#==============================================================================
+# ==============================================================================
 
-# Return a shape file attribute table as a pandas DataFrame
-# INPUTS
-#  shapefile  [string] vector file name
-# OUTPUTS
-#  table      [DataFrame] pandas DataFrame object
+
 def get_attribute_table(shapefile):
+    """
+    Return a shape file attribute table as a pandas DataFrame
+
+    INPUTS
+     shapefile  [string] vector file name
+    OUTPUTS
+     table      [DataFrame] pandas DataFrame object
+    """
+
     # Check if shapefile exist
-    shapefile = _files.default_file_ext(shapefile, 'vector')
-    if not _os.path.exists(shapefile):
-        raise TypeError('Shape file does not exist!')
+    shapefile = _validation.input_file(shapefile, 'vector', True)
     # Define default data types
     deftypes = {'F': float, 'N': int, 'C': str, 'L': bool}
     # Get field names
@@ -51,15 +53,18 @@ def get_attribute_table(shapefile):
     return(table)
 
 
-# Get the fieldnames of the attribute table of a shapefile
-# INPUTS
-#  shapefile   [string] input shape file
-#  onlynames   [boolean] get only field names ignoring type data
-# OUTPUTS
-#  fields      [list] list with field names and data type
 def get_attribute_table_fields(shapefile, onlynames=True):
+    """
+    Get the fieldnames of the attribute table of a shapefile
+
+    INPUTS
+     shapefile   [string] input shape file
+     onlynames   [boolean] get only field names ignoring type data
+    OUTPUTS
+     fields      [list] list with field names and data type
+    """
     # Check inputs
-    shapefile = _files.default_file_ext(shapefile, 'vector')
+    shapefile = _validation.input_file(shapefile, 'vector', True)
     if _os.path.exists(shapefile):
         s = _shp.Reader(shapefile, 'r')  # read shapefile
         if onlynames:
@@ -70,22 +75,26 @@ def get_attribute_table_fields(shapefile, onlynames=True):
     return(fields)
 
 
-#==============================================================================
+# ==============================================================================
 # Library: table_tools
-#==============================================================================
+# ==============================================================================
 
-# Create an attribute table (.dbf) for a shape file using
-# of from a pandas DataFrame
-# library: user defined, uses table_tools  tool: 2 and 11
-# INPUTS
-#  outable     [string] output attribute table (.dbf)
-#  intable     [string, DataFrame] input table (.csv, .txt) or pandas DataFrame
+
 def create_attribute_table(outable, intable):
+    """
+    Create an attribute table (.dbf) for a shape file using
+    of from a pandas DataFrame
+
+    library: user defined, uses table_tools  tool: 2 and 11
+    INPUTS
+     outable     [string] output attribute table (.dbf)
+     intable     [string, DataFrame] input table (.csv, .txt) or pandas DataFrame
+    """
     # Check inputs
     auxfile = None
-    if type(intable) is _pd.DataFrame:
+    if type(intable) is _pd.DataFrame():
         auxfile = 'auxiliar_table_file.csv'
-        if (_env.workdir is not None):
+        if _env.workdir is not None:
             auxfile = _os.path.join(_env.workdir, auxfile)
         intable.to_csv(auxfile)
         intable = auxfile
@@ -100,32 +109,36 @@ def create_attribute_table(outable, intable):
     cmd = ['saga_cmd', '-f=q', 'table_tools', '11', '-TABLE', outable,
            '-FIELDS', 'ENUM_ID', '-OUT_TABLE', outable]
     _env.run_command_logged(cmd);
-    # Delete auxiliar file
+    # Delete temporal file
     if auxfile is not None:
         _os.remove(auxfile)
     return(flag)
 
 
-# Join attributes from two tables and save it in a new table or shapefile
-# library: table_tools  tool: 3 and 4
-# INPUTS
-#  table1         [string] table (.dbf, .csv, .txt) or shape file which table 2 will
-#                  be joined
-#  table2         [string, DataFrame] table (.dbf, .csv, .txt) or shapefile,
-#                  or pandas DataFrame that will be joined to table1
-#  output         [string] optional output file with the same file extension that
-#                  table1. If output is None, table1 is overwrited
-#  id1            [int, string] table1 field identifier
-#  id2            [int, string] table2 field identifier. id1 and id2 must have the same
-#                  values for the tables joining
-#  fields         [list] list of fields (can be integers or field names) of the
-#                  fields that will be joined from table2 to table1. If fields
-#                  is None, all fields from table 2 are jpined to table1
-#  keep_all       [boolean] keep all values
-#  sensitive      [boolean] case for sensitive string comparison. Only for new
-#                  SAGA versions
 def join_attributes_from_tables(table1, table2, output=None, id1=0, id2=0,
                                 fields=None, keep_all=True, sensitive=True):
+    """
+    Join attributes from two tables and save it in a new table or shapefile
+
+    library: table_tools  tool: 3 and 4
+
+    INPUTS
+     table1         [string] table (.dbf, .csv, .txt) or shape file which table 2 will
+                     be joined
+     table2         [string, DataFrame] table (.dbf, .csv, .txt) or shapefile,
+                     or pandas DataFrame that will be joined to table1
+     output         [string] optional output file with the same file extension that
+                     table1. If output is None, table1 is overwrited
+     id1            [int, string] table1 field identifier
+     id2            [int, string] table2 field identifier. id1 and id2 must have the same
+                     values for the tables joining
+     fields         [list] list of fields (can be integers or field names) of the
+                     fields that will be joined from table2 to table1. If fields
+                     is None, all fields from table 2 are jpined to table1
+     keep_all       [boolean] keep all values
+     sensitive      [boolean] case for sensitive string comparison. Only for new
+                     SAGA versions
+    """
     # Check inputs
     if fields is None:
         fields_all = '1'
@@ -191,32 +204,36 @@ def join_attributes_from_tables(table1, table2, output=None, id1=0, id2=0,
     return(flag)  # join_attributes_from_tables()
 
 
-# Change field data types in an attribute table
-# library: table_tools  tool: 7
-# INPUTS
-#  table      [string] input table (.dbf, .csv, .txt)
-#  fields     [int, str, list] field index or name from the attribute table
-#              fields can be a list with multiple fields index or names
-#  types     [int, list] types is the new data type. If types is an integer
-#             all input fields are set with the same data type. If types
-#             is a list, it must have the same number of element of fields
-#             Available choises of data type:
-#                [0] string
-#                [1] date
-#                [2] color
-#                [3] unsigned 1 byte integer
-#                [4] signed 1 byte integer
-#                [5] unsigned 2 byte integer
-#                [6] signed 2 byte integer
-#                [7] unsigned 4 byte integer
-#                [8] signed 4 byte integer
-#                [9] unsigned 8 byte integer
-#                [10] signed 8 byte integer
-#                [11] 4 byte floating point number
-#                [12] 8 byte floating point number
-#                [13] binary
-#  outshapes  [string] output shape file with deleted fields
 def change_field_type(table, fields, types, output=None):
+    """
+    Change field data types in an attribute table
+
+    library: table_tools  tool: 7
+
+    INPUTS
+     table      [string] input table (.dbf, .csv, .txt)
+     fields     [int, str, list] field index or name from the attribute table
+                 fields can be a list with multiple fields index or names
+     types     [int, list] types is the new data type. If types is an integer
+                all input fields are set with the same data type. If types
+                is a list, it must have the same number of element of fields
+                Available choises of data type:
+                   [0] string
+                   [1] date
+                   [2] color
+                   [3] unsigned 1 byte integer
+                   [4] signed 1 byte integer
+                   [5] unsigned 2 byte integer
+                   [6] signed 2 byte integer
+                   [7] unsigned 4 byte integer
+                   [8] signed 4 byte integer
+                   [9] unsigned 8 byte integer
+                   [10] signed 8 byte integer
+                   [11] 4 byte floating point number
+                   [12] 8 byte floating point number
+                   [13] binary
+     outshapes  [string] output shape file with deleted fields
+    """
     # Check inputs
     if type(fields) in [int, str]:
         fields = [str(fields)]
@@ -251,17 +268,22 @@ def change_field_type(table, fields, types, output=None):
     return(flag)  # change_field_type()
 
 
-# Deletes selected fields from a table or shapefile
-# library: table_tools  tool: 11
-# INPUTS
-#  outshapes  [string] output shape file with deleted fields
-#  inshape    [string] input shape file
-#  fields     [int,string,list] if fields is a int/string, a single field is
-#              deleted, if fields is a list, multiple fields are deleted
 def delete_fields(outshape, inshape, fields=0):
+    """
+    Deletes selected fields from a table or shapefile
+
+    library: table_tools  tool: 11
+
+    INPUTS
+     outshapes  [string] output shape file with deleted fields
+     inshape    [string] input shape file
+     fields     [int,string,list] if fields is a int/string, a single field is
+                 deleted, if fields is a list, multiple fields are deleted
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector', False)
-    inshape = _files.default_file_ext(inshape, 'vector', False)
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', False)
+
     # check fields
     if type(fields) in [int, str]:
         fields = [fields]
@@ -273,6 +295,6 @@ def delete_fields(outshape, inshape, fields=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(grids=outshape, crs_method=1, proj=inshape);
+    _validation.validate_crs(inshape, [outshape])
     return(flag)  # delete_fields()
+

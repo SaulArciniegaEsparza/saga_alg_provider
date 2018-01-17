@@ -11,66 +11,70 @@ Mexico City
 
 # Import modules
 # env is the provider class
-import os
-from copy import deepcopy
+import os as _os
+from copy import deepcopy as _deepcopy
 import shapefile as _shp
 import numpy as _np
 
-import files as _files
 import projection as _projection
 import tables as _tables
 import shapes as _shapes
 import grids as _grids
 
 
-#==============================================================================
+# ==============================================================================
 # Library: ta_channels
-#==============================================================================
+# ==============================================================================
 
-# Derives a channel network based on gridded digital elevation data
-# library: ta_channels  tool: 0
-# INPUTS
-#  dem            [string] input dem grid (.sgrd or .tif)
-#  flowdir        [string] optional input flow direction grid (.sgrd or .tif)
-#  init_grid      [string] optional input conditional grid for initial flow (.sgrd or .tif)
-#  channels       [string] optional output shape file of channel network (.sgrd)
-#  gridchannels   [string] optional output grid of channel network (.sgrd)
-#  gridchandir    [string] optional output grid of channel network flow direction (.sgrd)
-#  init_value     [int, float] value for initiate flow from init_grid
-#  init_method    [int] method for initiate flow using init_grid
-#                  [0] Less than
-#                  [1] Equals
-#                  [2] Greater than (default)
-#  min_len        [int, float] minimum longitude of channel segments
+
 def channel_network(dem, flowdir=None, init_grid=None, channels=None,
                     gridchannels=None, gridchandir=None, init_value=100,
                     init_method=2, min_len=10):
+    """
+    Derives a channel network based on gridded digital elevation data
+
+    library: ta_channels  tool: 0
+
+    INPUTS
+     dem            [string] input dem grid (.sgrd or .tif)
+     flowdir        [string] optional input flow direction grid (.sgrd or .tif)
+     init_grid      [string] optional input conditional grid for initial flow (.sgrd or .tif)
+     channels       [string] optional output shape file of channel network (.sgrd)
+     gridchannels   [string] optional output grid of channel network (.sgrd)
+     gridchandir    [string] optional output grid of channel network flow direction (.sgrd)
+     init_value     [int, float] value for initiate flow from init_grid
+     init_method    [int] method for initiate flow using init_grid
+                     [0] Less than
+                     [1] Equals
+                     [2] Greater than (default)
+     min_len        [int, float] minimum longitude of channel segments
+    """
     # Wrong output parameters
     if channels is None and gridchannels is None and gridchandir is None:
         print('At least an output file must be especified!')
         return (False)
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
+    dem = _validation.input_file(dem, 'grid', False)
     if channels is None:  # check channels
         channels = 'NULL'
     else:
-        flowdir = _files.default_file_ext(flowdir, 'grid', False)
+        flowdir = _validation.input_file(flowdir, 'grid', False)
     if channels is None:  # check channels
         channels = 'NULL'
     else:
-        channels = _files.default_file_ext(channels, 'vector')
+        channels = _validation.output_file(channels, 'vector')
     if gridchannels is None:  # check gridchannels
         gridchannels = 'NULL'
     else:
-        gridchannels = _files.default_file_ext(gridchannels, 'grid')
+        gridchannels = _validation.output_file(gridchannels, 'grid')
     if gridchandir is None:  # check gridchandir
         gridchandir = 'NULL'
     else:
-        gridchandir = _files.default_file_ext(gridchandir, 'grid')
+        gridchandir = _validation.output_file(gridchandir, 'grid')
     if init_grid is None:  # check init_grid
         init_grid = 'NULL'
     else:
-        init_grid = _files.default_file_ext(init_grid, 'grid', False)
+        init_grid = _validation.input_file(init_grid, 'grid', False)
     if init_method < 0 or init_method > 2:  # set default init_method
         init_method = 2
     # convert to strings
@@ -85,35 +89,31 @@ def channel_network(dem, flowdir=None, init_grid=None, channels=None,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if channels is not None:
-        if not _files.has_crs_file(channels):  # set first input layer crs
-            _projection.set_crs(shapes=channels, crs_method=1, proj=dem);
-    if gridchannels is not None:
-        if not _files.has_crs_file(gridchannels):  # set first input layer crs
-            _projection.set_crs(grids=gridchannels, crs_method=1, proj=dem);
-    if gridchandir is not None:
-        if not _files.has_crs_file(gridchandir):  # set first input layer crs
-            _projection.set_crs(grids=gridchandir, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [channels, gridchannels, gridchandir])
     return(flag)  # channel_network()
 
 
-# Watershed Basins delimitation on a dem grid
-# library: ta_channels  tool: 1
-# INPUTS
-#  outgrid     [string] output basins grid file (.sgrd)
-#  dem         [string] input dem grid (.sgrd or .tif)
-#  channels    [string] input channel network grid (.sgrd or .tif)
-#  minsize     [int, float] minimum size of basins
-#  sinkroute   [string] sink route grid for flat terrain
 def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
+    """
+    Watershed Basins delimitation on a dem grid
+
+    library: ta_channels  tool: 1
+
+    INPUTS
+     outgrid     [string] output basins grid file (.sgrd)
+     dem         [string] input dem grid (.sgrd or .tif)
+     channels    [string] input channel network grid (.sgrd or .tif)
+     minsize     [int, float] minimum size of basins
+     sinkroute   [string] sink route grid for flat terrain
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    dem = _files.default_file_ext(dem, 'grid', False)
-    channels = _files.default_file_ext(channels, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
+    channels = _validation.input_file(channels, 'grid', False)
     if sinkroute is None:
         sinkroute = 'NULL'
     else:
-        sinkroute = _files.default_file_ext(sinkroute, 'grid', False)
+        sinkroute = _validation.input_file(sinkroute, 'grid', False)
     # restringe minsize
     if minsize < 0:
         minsize = 0
@@ -125,44 +125,48 @@ def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outgrid])
     return(flag)  # watershed_basins()
 
 
-#==============================================================================
+# ==============================================================================
 # Library: ta_hydrology
-#==============================================================================
+# ==============================================================================
 
-# Top-down processing of cells for calculation of flow accumulation
-# library: ta_hydrology  tool: 0
-# INPUTS
-#  outgrid     [string] output flow accumulation grid (.sgrd)
-#  dem         [string] input dem grid (.sgrd or .tif)
-#  method      [int] method for flow direction estimation
-#               [0] Deterministic 8
-#               [1] Rho 8
-#               [2] Braunschweiger Reliefmodell
-#               [3] Deterministic Infinity
-#               [4] Multiple Flow Direction
-#               [5] Multiple Triangular Flow Directon
-#               [6] Multiple Maximum Downslope Gradient Based Flow Directon
-#  unit        [int] accumulation cell unit
-#               [0] number of cells
-#               [1] cell area
-#  sinkroute   [string] optional input grid with sink route, only if dem is
-#               not corrected
-#  material    [srting] optional input grid with accumulation material
-#  weights     [srting] optional input grid with cells weights
+
 def flow_accumulation(outgrid, dem, method=0, unit=0, sinkroute=None,
                       material=None, weights=None):
+    """
+    Top-down processing of cells for calculation of flow accumulation
+
+    library: ta_hydrology  tool: 0
+
+    INPUTS
+     outgrid     [string] output flow accumulation grid (.sgrd)
+     dem         [string] input dem grid (.sgrd or .tif)
+     method      [int] method for flow direction estimation
+                  [0] Deterministic 8
+                  [1] Rho 8
+                  [2] Braunschweiger Reliefmodell
+                  [3] Deterministic Infinity
+                  [4] Multiple Flow Direction
+                  [5] Multiple Triangular Flow Directon
+                  [6] Multiple Maximum Downslope Gradient Based Flow Directon
+     unit        [int] accumulation cell unit
+                  [0] number of cells
+                  [1] cell area
+     sinkroute   [string] optional input grid with sink route, only if dem is
+                  not corrected
+     material    [srting] optional input grid with accumulation material
+     weights     [srting] optional input grid with cells weights
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    dem = _files.default_file_ext(dem, 'grid', False)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     if sinkroute is None:  # check sinkroute
         sinkroute = 'NULL'
     else:
-        sinkroute = _files.default_file_ext(sinkroute, 'grid', False)
+        sinkroute = _validation.input_file(sinkroute, 'grid', False)
     if material is None:  # check material
         material = 'NULL'
     else:
@@ -170,13 +174,10 @@ def flow_accumulation(outgrid, dem, method=0, unit=0, sinkroute=None,
     if weights is None:  # check weights
         weights = 'NULL'
     else:
-        weights = _files.default_file_ext(weights, 'grid', False)
-    if method < 0 or method > 6:  # set default method
-        method = 0
-    if unit < 0 or unit > 1:
-        unit = 0
-    method = str(method)
-    unit = str(unit)
+        weights = _validation.input_file(weights, 'grid', False)
+    # Check input parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 6], dtypes=[int])
+    unit = _validation.input_parameter(unit, 0, vrange=[0, 1], dtypes=[int])
     # Create cmd
     cmd = ['saga_cmd', 'ta_hydrology', '0', '-FLOW', outgrid, '-ELEVATION', dem,
            '-METHOD', method, '-FLOW_UNIT', unit, '-SINKROUTE', sinkroute,
@@ -184,52 +185,53 @@ def flow_accumulation(outgrid, dem, method=0, unit=0, sinkroute=None,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outgrid])
     return(flag)  # flow_accumulation()
 
 
-# Delimitation of the upslope contributing area for a point or a cloud of points
-# library: ta_hydrology  tool: 4
-# INPUTS
-#  output      [string] output grid of uslope area. It more than 1 point is
-#               input, output is used as a base name for the construction
-#               of each output grid (.sgrd)
-#  points      [list,array,string] input points. Input points can be a [x,y]
-#               list, tuple or array for a single point. For multiple points
-#               insert a [[x1,y1], [x2,y2],..,[xn,yn]] list/tuple/array.
-#               A points shape file can be used as input
-#               file of points
-#  dem         [string] input dem file (.sgrd or .tif)
-#  sinkroute   [string] optional input sink routes (.sgrd or .tif)
-#  field       [string,int] if points is a string, the column values of the
-#               attribute tables is used as outgrid names. If field is int
-#               then the column id is used
-#  method      [int] flow direction method
-#               [0] Deterministic 8
-#               [1] Deterministic Infinity
-#               [2] Multiple Flow Direction
-#  converge    [int,float] threshold value for method=2
 def upslope_area(output, points, dem, sinkroute=None, field=None,
                  method=0, converge=1.1):
+    """
+    Delimitation of the upslope contributing area for a point or a cloud of points
+
+    library: ta_hydrology  tool: 4
+
+    INPUTS
+     output      [string] output grid of uslope area. It more than 1 point is
+                  input, output is used as a base name for the construction
+                  of each output grid (.sgrd)
+     points      [list,array,string] input points. Input points can be a [x,y]
+                  list, tuple or array for a single point. For multiple points
+                  insert a [[x1,y1], [x2,y2],..,[xn,yn]] list/tuple/array.
+                  A points shape file can be used as input
+                  file of points
+     dem         [string] input dem file (.sgrd or .tif)
+     sinkroute   [string] optional input sink routes (.sgrd or .tif)
+     field       [string,int] if points is a string, the column values of the
+                  attribute tables is used as outgrid names. If field is int
+                  then the column id is used
+     method      [int] flow direction method
+                  [0] Deterministic 8
+                  [1] Deterministic Infinity
+                  [2] Multiple Flow Direction
+     converge    [int,float] threshold value for method=2
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
-    output = _files.default_file_ext(output, 'grid')
+    output = _validation.output_file(output, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     if type(sinkroute) is str:
-        sinkroute = _files.default_file_ext(sinkroute, 'grid', False)
+        sinkroute = _validation.input_file(sinkroute, 'grid', False)
     else:
         sinkroute = 'NULL'
-    if method < 0 or method > 2:
-        method = 0
-    # convert to strings
-    method = str(method)
+    # Check parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 2], dtypes=[int])
     converge = str(converge)
     # Create cmd incomplete
     cmd = ['saga_cmd', 'ta_hydrology', '4', '-ELEVATION', dem, '-SINKROUTE',
            sinkroute, '-METHOD', method, '-CONVERGE', converge]
     # Check points and create output names
-    path = os.path.dirname(output)
-    base = os.path.basename(output).split('.')[0]
+    path = _os.path.dirname(output)
+    base = _os.path.basename(output).split('.')[0]
     if type(points) in [list, tuple, _np.ndarray]:  # points is a list of a point
         points = _np.array(points, dtype=_np.float32)
         if points.ndim == 1 and points.size == 2:
@@ -240,10 +242,10 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
             flag = _env.run_command_logged(cmd)
         elif points.ndim == 2 and points.shape[1] == 2:  # points is a list of points
             for i in range(points.shape[0]):
-                output = os.path.join(path, base + '_' + str(i) + '.sgrd')
+                output = _os.path.join(path, base + '_' + str(i) + '.sgrd')
                 x, y = str(points[i][0]), str(points[i][1])
                 # run command
-                cmdf = deepcopy(cmd)
+                cmdf = _deepcopy(cmd)
                 cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
                 flag = _env.run_command_logged(cmdf)
         else:
@@ -268,10 +270,10 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
 
             # iterate over shapes
             for i in range(nshapes):
-                output = os.path.join(path, base + '_' + labels[i] + '.sgrd')
+                output = _os.path.join(path, base + '_' + labels[i] + '.sgrd')
                 x, y = str(shapes[i].points[0][0]), str(shapes[i].points[0][1])
                 # run command
-                cmdf = deepcopy(cmd)
+                cmdf = _deepcopy(cmd)
                 cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
                 flag = _env.run_command_logged(cmdf)
 
@@ -285,50 +287,51 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
         raise TypeError('Wrong input points argument!')
 
     # Check if output grid has crs file
-    if not _files.has_crs_file(output):  # set first input layer crs
-        _projection.set_crs(grids=output, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [output])
     return(flag)  # upslope_area()
 
 
-#==============================================================================
+# ==============================================================================
 # Library: ta_lighting
-#==============================================================================
+# ==============================================================================
 
-# Analytical hillshading calculation
-# library: ta_lighting  tool: 1
-# INPUTS
-#  outgrid      [string] output hillshading grid (.sgrd)
-#  dem          [string] input grid dem (.sgrd o .tif)
-#  method       [int] shading method
-#                [0] Standard (default)
-#                [1] Standard (max. 90Degree)
-#                [2] Combined Shading
-#                [3] Ray Tracing
-#                [4] Ambient Occlusion
-#  azimuth      [float] direction of the light source, measured in degree
-#                clockwise from the North direction. Only for method=0,1,2,3
-#  declination  [float] height of the light source, measured in degree above
-#                the horizon. Only for method=0,1,2,3
-#  exaggeration [float] the terrain exaggeration factor allows one to increase
-#                the shading contrasts in flat areas. Only for method=0,1,2,3
-#  shadow       [int] shadow method (Only for method=3)
-#                [0] slim: to trace grid node's shadow
-#                [1] fat (default): to trace the whole cell's shadow
-#  ndirs        [int] number of directions. Only for method=4
-#  radius       [float] search radius. Only for method=4
+
 def analytical_hillshading(outgrid, dem, method=0, azimuth=315, declination=45,
                            exaggeration=4, shadow=1, ndirs=8, radius=10):
+    """
+    Analytical hillshading calculation
+
+    library: ta_lighting  tool: 1
+
+    INPUTS
+     outgrid      [string] output hillshading grid (.sgrd)
+     dem          [string] input grid dem (.sgrd o .tif)
+     method       [int] shading method
+                   [0] Standard (default)
+                   [1] Standard (max. 90Degree)
+                   [2] Combined Shading
+                   [3] Ray Tracing
+                   [4] Ambient Occlusion
+     azimuth      [float] direction of the light source, measured in degree
+                   clockwise from the North direction. Only for method=0,1,2,3
+     declination  [float] height of the light source, measured in degree above
+                   the horizon. Only for method=0,1,2,3
+     exaggeration [float] the terrain exaggeration factor allows one to increase
+                   the shading contrasts in flat areas. Only for method=0,1,2,3
+     shadow       [int] shadow method (Only for method=3)
+                   [0] slim: to trace grid node's shadow
+                   [1] fat (default): to trace the whole cell's shadow
+     ndirs        [int] number of directions. Only for method=4
+     radius       [float] search radius. Only for method=4
+    """
     # Check inputs
     # dem = self.default_file_ext(dem, 'grid')
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    dem = _files.default_file_ext(dem, 'grid', None)
+    outgrid = _validation.output_file(outgrid, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     method, shadow, ndirs = int(method), int(shadow), int(ndirs)
-    if method < 0 or method > 4:
-        method = 0  # default method
-    if shadow < 0 or shadow > 1:
-        shadow = 1
-    if ndirs < 2:
-        ndirs = 2  # minimum value
+    method = _validation.input_parameter(method, 0, vrange=[0, 4], dtypes=[int])
+    shadow = _validation.input_parameter(shadow, 1, vrange=[0, 1], dtypes=[int])
+    ndirs = _validation.input_parameter(ndirs, 2, gt=2, dtypes=[int])
     # convert to string
     method, shadow = str(method), str(shadow)
     azimuth, declination = str(azimuth), str(declination)
@@ -341,49 +344,50 @@ def analytical_hillshading(outgrid, dem, method=0, azimuth=315, declination=45,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outgrid])
     return(flag)  # analytical_hillshading()
 
 
-#==============================================================================
+# ==============================================================================
 # Library: ta_morphometry
-#==============================================================================
+# ==============================================================================
 
-# Calculates the local morphometric terrain parameters slope and aspect
-# library: ta_morphometry  tool: 0
-# INPUTS
-#  dem          [string] input grid dem (.sgrd o .tif)
-#  outslope     [string] output slope (.sgrd)
-#  outaspect    [string] output aspect (.sgrd)
-#  method       [int] method for slope and aspect calculation. Default 6
-#                [0] maximum slope (Travis et al. 1975)
-#                [1] maximum triangle slope (Tarboton 1997)
-#                [2] least squares fitted plane (Horn 1981, Costa-Cabral & Burgess 1996)
-#                [3] 6 parameter 2nd order polynom (Evans 1979)
-#                [4] 6 parameter 2nd order polynom (Heerdegen & Beran 1982)
-#                [5] 6 parameter 2nd order polynom (Bauer, Rohdenburg, Bork 1985)
-#                [6] 9 parameter 2nd order polynom (Zevenbergen & Thorne 1987)
-#                [7] 10 parameter 3rd order polynom (Haralick 1983)
-#  sunits       [int] slope units
-#                [0] radians (default)
-#                [1] degree
-#                [2] percent
-#  aunits       [int] aspect units
-#                [0] radians
-#                [1] degree
+
 def dem_slope_aspect(dem, outslope, outaspect, method=6, sunits=0, aunits=0):
+    """
+    Calculates the local morphometric terrain parameters slope and aspect
+
+    library: ta_morphometry  tool: 0
+
+    INPUTS
+     dem          [string] input grid dem (.sgrd o .tif)
+     outslope     [string] output slope (.sgrd)
+     outaspect    [string] output aspect (.sgrd)
+     method       [int] method for slope and aspect calculation. Default 6
+                   [0] maximum slope (Travis et al. 1975)
+                   [1] maximum triangle slope (Tarboton 1997)
+                   [2] least squares fitted plane (Horn 1981, Costa-Cabral & Burgess 1996)
+                   [3] 6 parameter 2nd order polynom (Evans 1979)
+                   [4] 6 parameter 2nd order polynom (Heerdegen & Beran 1982)
+                   [5] 6 parameter 2nd order polynom (Bauer, Rohdenburg, Bork 1985)
+                   [6] 9 parameter 2nd order polynom (Zevenbergen & Thorne 1987)
+                   [7] 10 parameter 3rd order polynom (Haralick 1983)
+     sunits       [int] slope units
+                   [0] radians (default)
+                   [1] degree
+                   [2] percent
+     aunits       [int] aspect units
+                   [0] radians
+                   [1] degree
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
-    outslope = _files.default_file_ext(outslope, 'grid')
-    outaspect = _files.default_file_ext(outaspect, 'grid')
-    if method < 0 or method > 7:
-        method = 6
-    if sunits < 0 or sunits > 2:
-        sunits = 0
-    if aunits < 0 or aunits > 1:
-        aunits = 0
-    method, sunits, aunits = str(method), str(sunits), str(aunits)
+    outslope = _validation.output_file(outslope, 'grid')
+    outaspect = _validation.output_file(outaspect, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
+    # Check parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 7], dtypes=[int])
+    sunits = _validation.input_parameter(sunits, 0, vrange=[0, 2], dtypes=[int])
+    aunits = _validation.input_parameter(aunits, 0, vrange=[0, 1], dtypes=[int])
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'ta_morphometry', '0', '-ELEVATION', dem, '-SLOPE',
            outslope, '-ASPECT', outaspect, '-METHOD', method, '-UNIT_SLOPE',
@@ -391,30 +395,32 @@ def dem_slope_aspect(dem, outslope, outaspect, method=6, sunits=0, aunits=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outslope):  # set first input layer crs
-        _projection.set_crs(grids=outslope, crs_method=1, proj=dem);
-    if not _files.has_crs_file(outaspect):  # set first input layer crs
-        _projection.set_crs(grids=outaspect, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outslope, outaspect])
     return(flag)  # dem_slope_aspect()
 
 
-#==============================================================================
+# ==============================================================================
 # Library: ta_preprocessor
-#==============================================================================
+# ==============================================================================
 
-# Detects flow direction in sinks
-# library: ta_preprocessor  tool: 1
-# INPUTS
-#  outgrid     [string] output grid sink drainage route (.sgrd)
-#  dem         [string] input grid dem (.sgrd or .tif)
-#  threshold   [int, float] if threshold=0 this parameter is ignored. The
-#               parameter describes the maximum depth of a sink to be considered
-#               for removal [map units]. This makes it possible to exclude
-#               deeper sinks from filling.
+
 def sink_drainage_route_detection(outgrid, dem, threshold=0):
+    """
+    Detects flow direction in sinks
+
+    library: ta_preprocessor  tool: 1
+
+    INPUTS
+     outgrid     [string] output grid sink drainage route (.sgrd)
+     dem         [string] input grid dem (.sgrd or .tif)
+     threshold   [int, float] if threshold=0 this parameter is ignored. The
+                  parameter describes the maximum depth of a sink to be considered
+                  for removal [map units]. This makes it possible to exclude
+                  deeper sinks from filling.
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
-    outgrid = _files.default_file_ext(outgrid, 'grid')
+    outgrid = _validation.output_file(outgrid, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     if threshold != 0:
         op = 1
     else:
@@ -426,34 +432,38 @@ def sink_drainage_route_detection(outgrid, dem, threshold=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outgrid):  # set first input layer crs
-        _projection.set_crs(grids=outgrid, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outgrid])
     return(flag)  # sink_drainage_route_detection()
 
 
-# Remove sinks from a digital elevation model
-# library: ta_preprocessor  tool: 2
-# INPUTS
-#  outgrid     [string] output dem that has to be processed (.sgrd)
-#  dem         [string] input grid dem (.sgrd or .tif)
-#  sinkroute   [string] optional sink routes grid (.sgrd or .tif)
-#  method      [int] sinks removal method
-#               [0] Deepen Drainage Routes (default)
-#               [1] Fill Sinks
-#  threshold   [int, float] if threshold=0 this parameter is ignored. The
-#               parameter describes the maximum depth of a sink to be considered
-#               for removal [map units]. This makes it possible to exclude
-#               deeper sinks from filling.
+
 def sink_removal(outdem, dem, sinkroute=None, method=0, threshold=0):
+    """
+    Remove sinks from a digital elevation model
+
+    library: ta_preprocessor  tool: 2
+
+    INPUTS
+     outgrid     [string] output dem that has to be processed (.sgrd)
+     dem         [string] input grid dem (.sgrd or .tif)
+     sinkroute   [string] optional sink routes grid (.sgrd or .tif)
+     method      [int] sinks removal method
+                  [0] Deepen Drainage Routes (default)
+                  [1] Fill Sinks
+     threshold   [int, float] if threshold=0 this parameter is ignored. The
+                  parameter describes the maximum depth of a sink to be considered
+                  for removal [map units]. This makes it possible to exclude
+                  deeper sinks from filling.
+    """
     # Check inputs
-    outdem = _files.default_file_ext(outdem, 'grid')
-    dem = _files.default_file_ext(dem, 'grid', False)
+    outdem = _validation.output_file(outdem, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     if sinkroute is not None:
-        sinkroute = _files.default_file_ext(sinkroute, 'grid')
+        sinkroute = _validation.output_file(sinkroute, 'grid')
     else:
         sinkroute = 'NULL'
-    if method < 0 or method > 1:
-        method = 0
+    # Check parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
     if threshold != 0:
         op = 1
     else:
@@ -466,41 +476,44 @@ def sink_removal(outdem, dem, sinkroute=None, method=0, threshold=0):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outdem):  # set first input layer crs
-        _projection.set_crs(grids=outdem, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outdem])
     return(flag)  # sink_removal()
 
 
-# Fill sinks and calculate flow direction and watersheds areas with the
-# Wang and Liu method
-# The method was enhanced to allow the creation of hydrologic sound elevation
-# models, i.e. not only to fill the depression(s) but also to preserve a
-# downward slope along the flow path.
-# library: ta_preprocessor  tool: 4
-# INPUTS
-#  dem          [string] input dem file (.sgrd or .tif)
-#  outdem       [string] output filled dem (.sgrd)
-#  outflowdir   [string] output flow direction grid (.sgrd)
-#  outwshed     [string] output delineated watersheds basins grid (.sgrd)
-#  minslope     [float] Minimum slope gradient to preserve from cell to cell
-#                with a value of zero sinks are filled up to the spill
-#                elevation (which results in flat areas). Unit [Degree]
 def fill_sinks_wangliu(dem, outdem=None, outflowdir=None, outwshed=None,
                        minslope=0.1):
+    """
+    Fill sinks and calculate flow direction and watersheds areas with the
+    Wang and Liu method
+    The method was enhanced to allow the creation of hydrologic sound elevation
+    models, i.e. not only to fill the depression(s) but also to preserve a
+    downward slope along the flow path.
+
+    library: ta_preprocessor  tool: 4
+
+    INPUTS
+     dem          [string] input dem file (.sgrd or .tif)
+     outdem       [string] output filled dem (.sgrd)
+     outflowdir   [string] output flow direction grid (.sgrd)
+     outwshed     [string] output delineated watersheds basins grid (.sgrd)
+     minslope     [float] Minimum slope gradient to preserve from cell to cell
+                   with a value of zero sinks are filled up to the spill
+                   elevation (which results in flat areas). Unit [Degree]
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
+    dem = _validation.input_file(dem, 'grid', False)
     if outdem is None:
         outdem = 'NULL'
     else:
-        outdem = _files.default_file_ext(outdem, 'grid')
+        outdem = _validation.output_file(outdem, 'grid')
     if outflowdir is None:
         outflowdir = 'NULL'
     else:
-        outflowdir = _files.default_file_ext(outflowdir, 'grid')
+        outflowdir = _validation.output_file(outflowdir, 'grid')
     if outwshed is None:
         outwshed = 'NULL'
     else:
-        outwshed = _files.default_file_ext(outwshed, 'grid')
+        outwshed = _validation.output_file(outwshed, 'grid')
     minslope = str(minslope)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'ta_preprocessor', '4', '-ELEV', dem,
@@ -509,31 +522,27 @@ def fill_sinks_wangliu(dem, outdem=None, outflowdir=None, outwshed=None,
     # Run
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if outdem is not None:
-        if not _files.has_crs_file(outdem):  # set first input layer crs
-            _projection.set_crs(grids=outdem, crs_method=1, proj=dem);
-    if outflowdir is not None:
-        if not _files.has_crs_file(outflowdir):  # set first input layer crs
-            _projection.set_crs(grids=outflowdir, crs_method=1, proj=dem);
-    if outwshed is not None:
-        if not _files.has_crs_file(outwshed):  # set first input layer crs
-            _projection.set_crs(grids=outwshed, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outdem, outflowdir, outwshed])
     return(flag)  # fill_sinks_wangliu()
 
 
-# Fill sinks  for large data sets using an algorithm proposed by Wang & Liu
-# to identify and fill surface depressions in digital elevation models.
-# The method was enhanced to allow the creation of hydrologic sound elevation
-# models, i.e. not only to fill the depression(s) but also to preserve a
-# downward slope along the flow path.
-# library: ta_preprocessor  tool: 5
-# INPUTS
-#  outgrid     [string] output dem that has to be processed (.sgrd)
-#  dem         [string] input grid dem (.sgrd or .tif)
 def fill_sinks_wangliuXXL(outdem, dem, minslope=0.1):
+    """
+    Fill sinks  for large data sets using an algorithm proposed by Wang & Liu
+    to identify and fill surface depressions in digital elevation models.
+    The method was enhanced to allow the creation of hydrologic sound elevation
+    models, i.e. not only to fill the depression(s) but also to preserve a
+    downward slope along the flow path.
+
+    library: ta_preprocessor  tool: 5
+
+    INPUTS
+     outgrid     [string] output dem that has to be processed (.sgrd)
+     dem         [string] input grid dem (.sgrd or .tif)
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
-    outdem = _files.default_file_ext(outdem, 'grid')
+    outdem = _validation.output_file(outdem, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     minslope = str(minslope)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'ta_preprocessor', '5' '-ELEV', dem, '-FILLED',
@@ -541,45 +550,49 @@ def fill_sinks_wangliuXXL(outdem, dem, minslope=0.1):
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outdem):  # set first input layer crs
-        _projection.set_crs(grids=outdem, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outdem])
     return(flag)  # fill_sinks_wangliuXXL()
 
 
-# Burns a stream network into a Digital Elevation Model (DEM). Stream cells
-# have to be coded with valid data values, all other cells should be set to
-# no data value. First two methods decrease. The third method ensures a
-# steady downstream gradient. An elevation decrease is only applied, if a
-# downstream cell is equally high or higher. You should provide a grid with
-# flow directions for determination of downstream cells. The self.sink_dainage_route()
-# tool offers such flow directions.
-# INPUTS
-#  outdem      [string] output processed grid dem (.sgrd)
-#  dem         [string] input grid dem (.sgrd or .tif)
-#  streams     [string] input grid os hapefile streams network (.sgrd or .tif).
-#               If streams is a shapefile it must have .shp extension
-#  flowdir     [string] optional flow direction. Only applies if method=2
-#  method      [int] burn stream network method
-#               [0] simply decrease cell's value by epsilon (default)
-#               [1] lower cell's value to neighbours minimum value minus epsilon
-#               [2] trace stream network downstream
-#  epsilon     [float] epsilon parameter for method=0 and 1
 def burn_stream_network_into_dem(outdem, dem, streams, flowdir=None,
                                  method=0, epsilon=1.0):
+    """
+    Burns a stream network into a Digital Elevation Model (DEM). Stream cells
+    have to be coded with valid data values, all other cells should be set to
+    no data value. First two methods decrease. The third method ensures a
+    steady downstream gradient. An elevation decrease is only applied, if a
+    downstream cell is equally high or higher. You should provide a grid with
+    flow directions for determination of downstream cells. The self.sink_dainage_route()
+    tool offers such flow directions.
+
+    library: ta_preprocessor  tool: 6
+
+    INPUTS
+     outdem      [string] output processed grid dem (.sgrd)
+     dem         [string] input grid dem (.sgrd or .tif)
+     streams     [string] input grid os hapefile streams network (.sgrd or .tif).
+                  If streams is a shapefile it must have .shp extension
+     flowdir     [string] optional flow direction. Only applies if method=2
+     method      [int] burn stream network method
+                  [0] simply decrease cell's value by epsilon (default)
+                  [1] lower cell's value to neighbours minimum value minus epsilon
+                  [2] trace stream network downstream
+     epsilon     [float] epsilon parameter for method=0 and 1
+    """
     # Check inputs
-    dem = _files.default_file_ext(dem, 'grid', False)
-    outdem = _files.default_file_ext(outdem, 'grid')
+    outdem = _validation.output_file(outdem, 'grid')
+    dem = _validation.input_file(dem, 'grid', False)
     streams_poly = None
     if streams.endswith('.shp'):
         streams_poly = streams
         streams = 'auxiliar_stream.sgrd'
         if _env.workdir is not None:
-            streams = os.path.join(_env.workdir, streams)
+            streams = _os.path.join(_env.workdir, streams)
         _grids.shapes_to_grid(streams, streams_poly, grid_extent=dem)
     else:
-        streams = _files.default_file_ext(streams, 'grid', False)
+        streams = _validation.input_file(streams, 'grid', False)
     if flowdir is not None:
-        flowdir = _files.default_file_ext(flowdir, 'grid', False)
+        flowdir = _validation.input_file(flowdir, 'grid', False)
     else:
         flowdir = 'NULL'
     if method < 0 or method > 2:
@@ -596,40 +609,45 @@ def burn_stream_network_into_dem(outdem, dem, streams, flowdir=None,
     if streams_poly is not None:
         _files.delete_files(streams)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outdem):  # set first input layer crs
-        _projection.set_crs(grids=outdem, crs_method=1, proj=dem);
+    _validation.validate_crs(dem, [outdem])
     return(flag)  # burn_stream_network_into_dem()
 
 
-# Takes a line shapefile and transforms it to raster and subtracts depth
-# from the output grid
-# library: user defined
-# INPUT
-#  outgrid     [string] output grid dem with extracted line depth (.sgrd)
-#  ingrid      [string] input dem (.sgrd or .tif)
-#  inlines     [string] input lines shapefile
-#  width       [float] input river width
-#  depth       [float] inlines depth
 def dem_carve(outgrid, ingrid, inlines, width=10, depth=1):
+    """
+    Takes a line shapefile and transforms it to raster and subtracts depth
+    from the output grid
+
+    library: user defined
+
+    INPUT
+     outgrid     [string] output grid dem with extracted line depth (.sgrd)
+     ingrid      [string] input dem (.sgrd or .tif)
+     inlines     [string] input lines shapefile
+     width       [float] input river width
+     depth       [float] inlines depth
+    """
     # Check inputs
-    outgrid = _files.default_file_ext(outgrid, 'grid')
-    ingrid = _files.default_file_ext(ingrid, 'grid', False)
-    inlines = _files.default_file_ext(inlines, 'vector')
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    inlines = _files.default_file_ext(inlines, 'vector', False)
+
     # convert to strings
     width, depth = str(width), str(depth)
     # Apply buffer to lines
     auxshape = 'auxiliar_shape_lines.shp'
     if _env.workdir is not None:
-        auxshape = os.path.join(_env.workdir, auxshape)
+        auxshape = _os.path.join(_env.workdir, auxshape)
     flag = _shapes.shapes_buffer(auxshape, inlines, dist=width, dissolve=True)
     # Rasterize buffer
     auxgrid = 'auxiliar_grid_river.sgrd'
     if _env.workdir is not None:
-        auxgrid = os.path.join(_env.workdir, auxgrid)
+        auxgrid = _os.path.join(_env.workdir, auxgrid)
     flag = _grids.shapes_to_grid(auxgrid, auxshape, value_method=0, grid_extent=ingrid)
     # Cumpute dem difference
-    flag = _env.grid_calculator(outgrid, [ingrid, auxgrid], use_nodata=True,
-                                formula='g1 - g2 * {}'.format(depth))
+    flag = _grids.calculator(outgrid, [ingrid, auxgrid], use_nodata=True,
+                             formula='g1 - g2 * {}'.format(depth))
     # Delete auxiliar files
     _files.delete_files([auxshape, auxgrid])
     return(flag)  # dem_carve()
+

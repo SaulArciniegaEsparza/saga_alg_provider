@@ -142,17 +142,32 @@ def validate_crs(source, files):
     Useful for some methods that don't set any crs to output files
 
     INPUTS:
-      source      [string] input projection source. The .prj extension is forced
-      files       [list, tuple] set of files names to associate the source .prj file
+      source      [string, list, tuple] input projection source or set of source files.
+                  The .prj extension is forced for each file.
+                  If source is a list/tuple, only the first available .prj file is used
+      files       [string, list, tuple] file or set of files names to associate
+                   the source .prj file
     """
-    source = _files.default_file_ext(source, 'prj')
-    if _os.path.exists(source):
+    # Look for source file
+    source_crs = None
+    if type(source) is str:
+        source = [source]
+    if type(source) in (list, tuple):
+        for source_file in source:
+            source_file = _files.default_file_ext(source_file, 'prj', True)
+            if _os.path.exists(source_file):
+                source_crs = source_file
+                break
+    # Copy crs to each file
+    if source_crs is not None:
+        if type(files) is str:
+            files = [files]
         if type(files) in (list, tuple):
             for filename in files:
                 if not _files.has_crs_file(filename):
-                    new_proj = _files.default_file_ext(filename, 'prj')
+                    new_proj = _files.default_file_ext(filename, 'prj', True)
                     try:  # copy prj file
-                        _shutil.copy(source, new_proj)
+                        _shutil.copy(source_crs, new_proj)
                     except:  # maybe the input is the same that output
                         pass
     # End Function
