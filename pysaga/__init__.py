@@ -30,15 +30,19 @@ tools.tables._env = environment
 
 # Set GridObj
 tools.grids._io = data_manager.grids
+tools.import_export._io = data_manager.grids
 
 user_tools.hydrology._io = data_manager.grids
 user_tools.methods._io = data_manager.grids
 
 # Set utilities.files as _files
+tools.climate._files = utilities.files
 tools.grids._files = utilities.files
+tools.import_export._files = utilities.files
 
 user_tools.methods._files = utilities.files
 
 # Set utilities.data_validation as _validation
+tools.climate._validation = utilities.data_validation
 tools.grids._validation = utilities.data_validation
-
+tools.import_export._validation = utilities.data_validation
