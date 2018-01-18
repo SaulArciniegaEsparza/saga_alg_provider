@@ -7,7 +7,11 @@ setup(
     author_email='zaul.ae@gmail.com',
     description='A SAGA GIS algorithm provider',
     license='BSD',
-    packages=['pysaga'],
+    packages=['pysaga',
+              'pysaga/data_manager',
+              'pysaga/tools',
+              'pysaga/user_tools',
+              'pysaga/utilities'],
     classifiers=[
         'Development Status :: SAGA GIS algorithm provider',
         'Intended Audience :: Engineering software',

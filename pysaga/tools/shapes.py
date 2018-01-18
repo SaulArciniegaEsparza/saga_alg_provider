@@ -229,7 +229,7 @@ def vectorising_grid_classes(outshape, ingrid, method=1, classid=0,
     outshape = _validation.output_file(outshape, 'vector')
     ingrid = _validation.input_file(ingrid, 'grid', False)
     # check methods
-    method = _valdiation.input_parameter(method, 1, vrange=[0, 1], dtypes=[int])
+    method = _validation.input_parameter(method, 1, vrange=[0, 1], dtypes=[int])
     classid = str(classid)
     vertices = str(int(vertices))
     # Create cmd
