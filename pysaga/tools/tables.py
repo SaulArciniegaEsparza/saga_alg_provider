@@ -1,6 +1,9 @@
 """
 SAGA GIS algorithm provider
 Attribute tables tools
+    user tools
+    table_tools
+
 
 Author:
 Saul Arciniega Esparza
@@ -10,12 +13,13 @@ Mexico City
 """
 
 # Import modules
+import sys as _sys
 import os as _os
 import pandas as _pd
 import numpy as _np
 import shapefile as _shp
 
-import projection as _projection
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 
 # ==============================================================================
@@ -112,7 +116,9 @@ def create_attribute_table(outable, intable):
     # Delete temporal file
     if auxfile is not None:
         _os.remove(auxfile)
-    return(flag)
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def join_attributes_from_tables(table1, table2, output=None, id1=0, id2=0,
@@ -201,7 +207,9 @@ def join_attributes_from_tables(table1, table2, output=None, id1=0, id2=0,
     if aux2 is not None:
         _os.remove(aux2)
     # End function
-    return(flag)  # join_attributes_from_tables()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def change_field_type(table, fields, types, output=None):
@@ -265,7 +273,9 @@ def change_field_type(table, fields, types, output=None):
                field, '-OUTPUT', output, '-TYPE', dtype]
         # run
         flag = _env.run_command_logged(cmd)
-    return(flag)  # change_field_type()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def delete_fields(outshape, inshape, fields=0):
@@ -296,5 +306,7 @@ def delete_fields(outshape, inshape, fields=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(inshape, [outshape])
-    return(flag)  # delete_fields()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 

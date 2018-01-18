@@ -16,8 +16,6 @@ from collections import OrderedDict as _OrderedDict
 import numpy as _np
 import pandas as _pd
 
-import files as _files
-from _projection import crs_from_epsg as _crs_from_epsg
 try:
     import gdal as _gdal
     import gdalconst as _gdalconst
@@ -48,12 +46,15 @@ class GridObj(object):
         yield 'bands', self.bands
 
     # Text special function
-    def __repr__(self):
+    def __str__(self):
         text = 'Grid Object'
         for key, value in self.__dict__.iteritems():
             text += '\n' + key + ':'
             text += '\n' + str(value)
         return(text)
+
+    def __repr__(self):
+        return('GridObj()')
 
     # Reset raster connection
     def _reset_attributes(self):
@@ -91,10 +92,12 @@ class GridObj(object):
             self.driver = None
             self._reset_attributes()
 
-    # Use gdal library for extract raster information
-    # OUTPUT
-    #  rinfo     [dict] raster information dictionary
     def get_grid_info(self):
+        """
+        Use gdal library for extract raster information
+        OUTPUT
+         rinfo     [dict] raster information dictionary
+        """
         # Check grid connection
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
@@ -114,14 +117,16 @@ class GridObj(object):
                  'bands' : bands}
         return(rinfo)  # grid_info()
 
-    # Get grid coordinates of whole data or from selected points
-    # INPUTS
-    #  row, col    [int, list] input row and cols of pixels. If row=col=None, all pixels
-    #               coordinates are returned
-    #  slice       [boolean] if slice is True, row and col is used as extent
-    # OUTPUT
-    #  X, Y        [np.array] X and Y coordinate matrix
     def get_coordinates(self, extent=None, index=False):
+        """
+        Get grid coordinates of whole data or from selected points
+        INPUTS
+         row, col    [int, list] input row and cols of pixels. If row=col=None, all pixels
+                      coordinates are returned
+         slice       [boolean] if slice is True, row and col is used as extent
+        OUTPUT
+         X, Y        [np.array] X and Y coordinate matrix
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -161,10 +166,12 @@ class GridObj(object):
             X, Y = get_coors_matrix(rows, cols)  # get coordinates
         return(X, Y)  # get_grid_coordinates()
 
-    # Get raster extent
-    # OUTPUTS
-    #  extent    [np.ndarray] [xmin, xmax, ymin, ymax] array
     def get_extent(self):
+        """
+        Get raster extent
+        OUTPUTS
+         extent    [np.ndarray] extent as [xmin, xmax, ymin, ymax]
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get extent
@@ -180,10 +187,12 @@ class GridObj(object):
         extent = _np.hstack((X, Y))  # extent
         return(extent)  # get_extent()
 
-    # Return pixel width and height
-    # OUTPUTS
-    #  width, height    [float] pixel size
     def get_resolution(self):
+        """
+        Return pixel width and height
+        OUTPUTS
+         width, height    [float] pixel size
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get geotransform
@@ -191,10 +200,12 @@ class GridObj(object):
         width, height = gt[1], abs(gt[5])
         return(width, height)
 
-    # Return raster origin (upper left corner)
-    # OUTPUT
-    #  origin     [np.ndarray] [x_left, y_upper] array
     def get_origin(self):
+        """
+        Return raster origin (upper left corner)
+        OUTPUT
+         origin     [np.ndarray] [x_left, y_upper] array
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get geotransform
@@ -202,13 +213,15 @@ class GridObj(object):
         origin = (gt[0], gt[3])
         return(origin)
 
-    # Get no data values from selected bands
-    # INPUTS
-    #  bands     [int, list] band number or list of band numbers
-    # OUTPUTS
-    #  nodata     If bands is an integer, nodata is an int or float
-    #             If bands is a list, nodata is a numpy array
     def get_nodata(self, bands=1):
+        """
+        Get no data values from selected bands
+        INPUTS
+         bands     [int, list] band number or list of band numbers
+        OUTPUTS
+         nodata     If bands is an integer, nodata is an int or float
+                    If bands is a list, nodata is a numpy array
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster gdal dataset!')
             # Check inputs
@@ -232,13 +245,15 @@ class GridObj(object):
             nodata = _np.array(data)
         return(nodata)  # get_nodata()
 
-    # Extract coordinates from a pixel
-    # INPUTS
-    #  pixels     [list, tuple, np.ndarray] [row, col] array. For multiple pixels use
-    #              [[row1, col1], [row2, col2],...]
-    # OUTPUT
-    #  coors      [np.ndarray] output coordinate arrays [[x1, y1], [x2, y2]]
     def pixel2coor(self, pixels):
+        """
+        Extract coordinates from a pixel
+        INPUTS
+         pixels     [list, tuple, np.ndarray] [row, col] array. For multiple pixels use
+                     [[row1, col1], [row2, col2],...]
+        OUTPUT
+         coors      [np.ndarray] output coordinate arrays [[x1, y1], [x2, y2]]
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -266,13 +281,15 @@ class GridObj(object):
         coors = _np.array(zip(X, Y), dtype=float)
         return(coors)  # pixel2coor()
 
-    # Convert coordinates from a pixel to row and col
-    # INPUTS
-    #  points      [list, tuple, np.ndarray] [x, y] coordinates.
-    #               For multiple points use [[x1, y1], [x2, y2], ...]
-    # OUPUTS
-    #  pixels   [np.ndarray] rows and cols of coordinates [[row1, col1], [row2, col2]]
     def coor2pixel(self, points):
+        """
+        Convert coordinates from a pixel to row and col
+        INPUTS
+         points      [list, tuple, np.ndarray] [x, y] coordinates.
+                      For multiple points use [[x1, y1], [x2, y2], ...]
+        OUPUTS
+         pixels   [np.ndarray] rows and cols of coordinates [[row1, col1], [row2, col2]]
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -302,20 +319,22 @@ class GridObj(object):
         pixels = _np.array(zip(rows, cols), dtype=int)
         return(pixels)  # coor2pixel()
 
-    # Get pixel values using rows and cols
-    # INPUTS
-    #  pixels    [list, tuple, np.ndarray] [row, col] pixel. For multiple pixels use
-    #             [[row1, col1], [row2, col2]]
-    #  bands     [int, list] band number or list of band numbers
-    #  dtype     [int, float, np.int, np.float] data type
-    # OUTPUTS
-    #  data     If one pixel of a single band is called, data is a int or float value
-    #           If multiple pixels are called of a single band, data is a pandas DataFrame
-    #            with pixel number as index
-    #           If multiple pixels of multiple bands are called, data is a pandas DataFrame
-    #            where row index is the band number (starting from 1) and columns index as
-    #            pixel number
     def get_pixel_value(self, pixels, bands=1, dtype=float):
+        """
+        Get pixel values using rows and cols
+        INPUTS
+         pixels    [list, tuple, np.ndarray] [row, col] pixel. For multiple pixels use
+                    [[row1, col1], [row2, col2]]
+         bands     [int, list] band number or list of band numbers
+         dtype     [int, float, np.int, np.float] data type
+        OUTPUTS
+         data     If one pixel of a single band is called, data is a int or float value
+                  If multiple pixels are called of a single band, data is a pandas DataFrame
+                   with pixel number as index
+                  If multiple pixels of multiple bands are called, data is a pandas DataFrame
+                   where row index is the band number (starting from 1) and columns index as
+                   pixel number
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -373,17 +392,19 @@ class GridObj(object):
             data.index.name = 'band'
         return(data)  # get_pixel_values()
 
-    # Get raster values from bands
-    # INPUTS
-    #  bands     [int, list] band number or list of band numbers
-    #  extent    [list] grid extent with cells number or coordinates [xmin, xmax, ymin, ymax]
-    #  index     [boolean] if index is True, extent uses row and col indexes. If index
-    #             is False (default) extent uses coordinates
-    #  dtype     [int, float, np.int, np.float] data type
-    # OUTPUT
-    #  data      [np.array] output numpy array. If bands is a list, output data is
-    #             an 3 dimensional array
     def get_data(self, bands=1, extent=None, index=False, dtype=_np.float64):
+        """
+        Get raster values from bands
+        INPUTS
+         bands     [int, list] band number or list of band numbers
+         extent    [list] grid extent with cells number or coordinates [xmin, xmax, ymin, ymax]
+         index     [boolean] if index is True, extent uses row and col indexes. If index
+                    is False (default) extent uses coordinates
+         dtype     [int, float, np.int, np.float] data type
+        OUTPUT
+         data      [np.array] output numpy array. If bands is a list, output data is
+                    an 3 dimensional array
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -442,13 +463,15 @@ class GridObj(object):
             data = _np.array(data, dtype=data[0].dtype)
         return(data)  # get_data()
 
-    # Change band values
-    # If GridObj is connected with a raster file, file is overwrited
-    # INPUTS
-    #  data      [np.ndarray] data array
-    #  band      [int] band number
-    #  row, col  [int] upper left pixel row and col to set new data
     def set_data(self, data, band=1, row=0, col=0):
+        """
+        Change band values
+        If GridObj is connected with a raster file, file is overwrited
+        INPUTS
+         data      [np.ndarray] data array
+         band      [int] band number
+         row, col  [int] upper left pixel row and col to set new data
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -474,10 +497,12 @@ class GridObj(object):
         band_data = None  # close
         # set_data()
 
-    # Change no data values for all bands
-    # INPUTS
-    #  nodata     [int, float] new no data value
     def set_nodatavalue(self, nodata=-99999):
+        """
+        Change no data values for all bands
+        INPUTS
+         nodata     [int, float] new no data value
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -492,11 +517,13 @@ class GridObj(object):
             band_data = None
         # set_nodatavalue()
 
-    # Write GridObj in a raster file
-    # INPUTS
-    #  filename      [string] output raster file name
-    #  driver        [string] gdal driver name. SAGA as default
     def to_file(self, filename=None, driver='SAGA'):
+        """
+        Write GridObj in a raster file
+        INPUTS
+         filename      [string] output raster file name
+         driver        [string] gdal driver name. SAGA as default
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -537,11 +564,12 @@ class GridObj(object):
         self.read_file(filename)
         # to_file()
 
-    # Make a virtual copy of GridObj
-    # OUTPUT
-    # OUTPUTS
-    #  newobj       [GridObj] virtual GridObj
     def to_memory(self):
+        """
+        Make a virtual copy of GridObj
+        OUTPUTS
+         newobj       [GridObj] virtual GridObj
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster gdal dataset!')
 
@@ -566,19 +594,21 @@ class GridObj(object):
         band_data = None
         return(newobj)  # resample()
 
-    # Copy resolution and projection from other GridObj
-    # Results are saved in a virtual raster
-    # INPUTS
-    #  refobj        [instance] reference GridObj
-    #  resampling    [int] resampling method
-    #                 [0] Nearest Neighbour
-    #                 [1] Averange
-    #                 [2] Bilinear
-    #                 [3] Cubic (default)
-    #                 [4] Cubic Spline
-    # OUTPUTS
-    #  newobj       [GridObj] resampled and reprojected new GridObj
     def copy_resolution(self, refobj, resampling=3):
+        """
+        Copy resolution and projection from other GridObj
+        Results are saved in a virtual raster
+        INPUTS
+         refobj        [instance] reference GridObj
+         resampling    [int] resampling method
+                        [0] Nearest Neighbour
+                        [1] Averange
+                        [2] Bilinear
+                        [3] Cubic (default)
+                        [4] Cubic Spline
+        OUTPUTS
+         newobj       [GridObj] resampled and reprojected new GridObj
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         if type(refobj.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
@@ -624,22 +654,24 @@ class GridObj(object):
         band_data = None
         return(newobj)  # copy_resolution()
 
-    # Resample raster and save in a virtual raster
-    # INPUTS
-    #  cellsize      [int] new cellsize. If cellsize is 0, cellsize is ignored
-    #  extent        [list, tuple, np.ndarray] new raster extent [xmin, xmax, ymin, ymax].
-    #                 If extent is None, actual extent is used
-    #  ncols, nrows  [int] new number of cols and rows. It can be used instead of cellsize parameter.
-    #                 If ncols or nrows is 0, then they are ignored
-    #  resampling    [int] resampling method
-    #                 [0] Nearest Neighbour
-    #                 [1] Averange
-    #                 [2] Bilinear
-    #                 [3] Cubic (default)
-    #                 [4] Cubic Spline
-    # OUTPUTS
-    #  newobj       [GridObj] resampled virtual GridObj
     def resample(self, cellsize=0, extent=None, ncols=0, nrows=0, resampling=3):
+        """
+        Resample raster and save in a virtual raster
+        INPUTS
+         cellsize      [int] new cellsize. If cellsize is 0, cellsize is ignored
+         extent        [list, tuple, np.ndarray] new raster extent [xmin, xmax, ymin, ymax].
+                        If extent is None, actual extent is used
+         ncols, nrows  [int] new number of cols and rows. It can be used instead of cellsize parameter.
+                        If ncols or nrows is 0, then they are ignored
+         resampling    [int] resampling method
+                        [0] Nearest Neighbour
+                        [1] Averange
+                        [2] Bilinear
+                        [3] Cubic (default)
+                        [4] Cubic Spline
+        OUTPUTS
+         newobj       [GridObj] resampled virtual GridObj
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -714,19 +746,21 @@ class GridObj(object):
         band_data = None
         return(newobj)  # resample()
 
-    # Reproject raster and save in a virtual raster
-    # INPUTS
-    #  proj          [int, str] proj can be a EPSG integer code or
-    #                 a Well Known string projection
-    #  resampling    [int] resampling method
-    #                 [0] Nearest Neighbour
-    #                 [1] Averange
-    #                 [2] Bilinear
-    #                 [3] Cubic (default)
-    #                 [4] Cubic Spline
-    # OUTPUTS
-    #  newobj       [GridObj] reprojected virtual GridObj
     def reproject(self, proj, resampling=3, threshold=0.125):
+        """
+        Reproject raster and save in a virtual raster
+        INPUTS
+         proj          [int, str] proj can be a EPSG integer code or
+                        a Well Known string projection
+         resampling    [int] resampling method
+                        [0] Nearest Neighbour
+                        [1] Averange
+                        [2] Bilinear
+                        [3] Cubic (default)
+                        [4] Cubic Spline
+        OUTPUTS
+         newobj       [GridObj] reprojected virtual GridObj
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
@@ -774,14 +808,16 @@ class GridObj(object):
         band_data = None
         return(newobj)  # resample()
 
-    # Check if GridObj is compatible for direct map algebra
-    # with a reference GridObj
-    # INPUTS
-    #  refobj       [GridObj] reference GridObj
-    # OUTPUTS
-    #  flag         [bool] flag is True if GridObj is compatible
-    #                with reference GridObj
     def is_compatible(self, refobj):
+        """
+        Check if GridObj is compatible for direct map algebra
+        with a reference GridObj
+        INPUTS
+         refobj       [GridObj] reference GridObj
+        OUTPUTS
+         flag         [bool] flag is True if GridObj is compatible
+                       with reference GridObj
+        """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster gdal dataset!')
         # Check
@@ -794,14 +830,17 @@ class GridObj(object):
         return(True)
 
 
-#==============================================================================
+# ==============================================================================
 # Grid Object functions
-#==============================================================================
+# ==============================================================================
 
-# Get _gdal drivers dictionary
-# OUTPUT
-#  drivers    [dict] drivers and file extension
+
 def gdal_driver_list():
+    """
+    Get _gdal drivers dictionary
+    OUTPUT
+     drivers    [dict] drivers and file extension
+    """
     drivers = {}
     for i in range(_gdal.GetDriverCount()):
         drv = _gdal.GetDriver(i)
@@ -810,22 +849,24 @@ def gdal_driver_list():
     return(drivers)  # gdal_driver_list()
 
 
-# Create virtual layer from a numpy array
-# INPUTS
-#  data            [np.ndarray] input data. If data is a bi-dimensional array
-#                   only one band is created. For tree-dimensional array, number of bands
-#                   is extracted from the first dimension
-#  geotransform    [list, tuple, np.ndarray] geo transformation array
-#                   [x_left, width, x_rotation, y_upper, y_rotation, height]
-#  proj            [int, str] projection reference. If proj is an integer
-#                   takes as the EPSG code. If proj is a string is considering
-#                   as a WKT projection
-#  noval           [int, float] no data value
-#  dtype           [type] data type (int or float)
-# OUTPUTS
-#  gridobj         Memory GridObj
 def create_virtualraster(data, geotransform=[0, 100, 0, 0, 0, -100],
                         proj=4326, noval=-99999, dtype=float):
+    """
+    Create virtual layer from a numpy array
+    INPUTS
+     data            [np.ndarray] input data. If data is a bi-dimensional array
+                      only one band is created. For tree-dimensional array, number of bands
+                      is extracted from the first dimension
+     geotransform    [list, tuple, np.ndarray] geo transformation array
+                      [x_left, width, x_rotation, y_upper, y_rotation, height]
+     proj            [int, str] projection reference. If proj is an integer
+                      takes as the EPSG code. If proj is a string is considering
+                      as a WKT projection
+     noval           [int, float] no data value
+     dtype           [type] data type (int or float)
+    OUTPUTS
+     gridobj         Memory GridObj
+    """
     # Get data type
     if dtype == float:
         dtype = _gdal.GDT_Float32
@@ -885,19 +926,21 @@ def create_virtualraster(data, geotransform=[0, 100, 0, 0, 0, -100],
     return(gridobj)  #   create_virtualraster()
 
 
-# Create dataset from a numpy array
-# INPUTS
-#  filename        [string] output raster filename
-#  data            [np.ndarray] 2 or 3 dimensional numpy array. Number of
-#                   bands is equal to data.shape[0]
-#  geotransform    [list, tuple, np.ndarray] geo transform list
-#                   [origin_x, cellsize_x, rotation_x, origin_y, rotation_y, cellsize_y]
-#  proj            [int, string] crs from epsg code or wellknown text
-#  noval           [int, float] no data values
-#  dtype           [int, float] define type of raster data: int or float
-#  driver          [string] driver name of raster file
 def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
                  proj=4326, noval=-99999, dtype=float, driver='SAGA'):
+    """
+    Create dataset from a numpy array
+    INPUTS
+     filename        [string] output raster filename
+     data            [np.ndarray] 2 or 3 dimensional numpy array. Number of
+                      bands is equal to data.shape[0]
+     geotransform    [list, tuple, np.ndarray] geo transform list
+                      [origin_x, cellsize_x, rotation_x, origin_y, rotation_y, cellsize_y]
+     proj            [int, string] crs from epsg code or wellknown text
+     noval           [int, float] no data values
+     dtype           [int, float] define type of raster data: int or float
+     driver          [string] driver name of raster file
+    """
     # Raster file name
     drivers = gdal_driver_list()  # get driver list
     if not drivers.has_key(driver):
@@ -964,13 +1007,15 @@ def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
     driver = None
 
 
-# Create or read a grid system
-# INPUTS
-#  grid      [string] grid system file (.sgrd). By default grid is None.
-#             When grid is None an empty grid system is created
-# OUTPUTS
-#  gridsys   [dict] grid system
 def grid_system(grid=None):
+    """
+    Create or read a grid system
+    INPUTS
+     grid      [string] grid system file (.sgrd). By default grid is None.
+                When grid is None an empty grid system is created
+    OUTPUTS
+     gridsys   [dict] grid system
+    """
     if grid is None:  # deifine an empty gridsystem
         gridsys = _OrderedDict()  # empty orderdict
         gridsys['NAME'] = 'New'
@@ -1047,12 +1092,14 @@ def grid_system(grid=None):
     return(gridsys)  # grid_sys()
 
 
-# Get grid extent
-# INPUTS
-#  grid       [str] grid system file name (.sgrd)
-# OUTPUTS
-#  extent     [np.ndarray] grid extent [xmin, xmax, ymin, ymax]
 def get_grid_extent(grid):
+    """
+    Get grid extent
+    INPUTS
+     grid       [str] grid system file name (.sgrd)
+    OUTPUTS
+     extent     [np.ndarray] grid extent [xmin, xmax, ymin, ymax]
+    """
     if type(grid) is _OrderedDict:  # grid is a gridsystem
         gs = _deepcopy(grid)
     else:
@@ -1070,12 +1117,14 @@ def get_grid_extent(grid):
     return(extent)  # get_grid_extent()
 
 
-# Get rows and cols of pixels with values in an array
-# INPUTS
-#  data    [np.ndarray, GridObj] input array or GridObj
-# OUTPUTS
-#  pixels  [np.ndarray] output array with [[row1, col1], [row2, col2],...]
 def cell_with_value(data):
+    """
+    Get rows and cols of pixels with values in an array
+    INPUTS
+     data    [np.ndarray, GridObj] input array or GridObj
+    OUTPUTS
+     pixels  [np.ndarray] output array with [[row1, col1], [row2, col2],...]
+    """
     if type(data) is GridObj:
         data = data.get_data()
     elif type(data) is not _np.ndarray:

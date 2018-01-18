@@ -3,7 +3,6 @@ SAGA GIS algorithm provider
 Validation of input and output parameters
 """
 
-
 import os as _os
 import shutil as _shutil
 

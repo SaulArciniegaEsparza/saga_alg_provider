@@ -1,6 +1,9 @@
 """
 SAGA GIS algorithm provider
 Import and Export tools
+    io_gdal
+    io_grid
+
 
 Author:
 Saul Arciniega Esparza
@@ -10,7 +13,10 @@ Mexico City
 """
 
 # Import modules
+import sys as _sys
 import os as _os
+
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 
 # ==============================================================================
@@ -69,7 +75,9 @@ def gdal_import_raster(outgrid, inraster, band=0, transform=True, method=3):
            '-SELECTION', band, '-TRANSFORM', transform, '-RESAMPLING', method]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # gdal_import_raster()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def export_geotiff(outraster, ingrid):
@@ -95,7 +103,9 @@ def export_geotiff(outraster, ingrid):
     cmd = ['saga_cmd', 'io_gdal', '2', '-GRIDS', ingrid, '-FILE', outraster]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # export_geotiff()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def export_shapes(outshape, inshape, formatid=0):
@@ -118,7 +128,9 @@ def export_shapes(outshape, inshape, formatid=0):
            outshape, '-FORMAT', formatid]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # export_shapes()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def export_shapes_to_kml(outfile, inshape):
@@ -139,7 +151,9 @@ def export_shapes_to_kml(outfile, inshape):
            outfile]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # export_shapes_to_kml()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def import_netcdf(folder, infile, transform=True, resampling=3):
@@ -168,7 +182,9 @@ def import_netcdf(folder, infile, transform=True, resampling=3):
            resampling]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # import_netcdf()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -211,5 +227,7 @@ def import_clip_geotiff(outgrid, ingrid, polygon=None, cellsize=0, keep_type=Fal
            '-CELLSIZE', cellsize]
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # import_clip_geotiff()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 

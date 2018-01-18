@@ -2,6 +2,28 @@
 SAGA GIS algorithm provider
 Initialization of SAGA algorithm provider
 
+STRUCTURE:
+    data_manager
+        grids
+
+    tools
+        climate
+        grids
+        import_export
+        projection
+        shapes
+        tables
+        terrain_analysis
+
+    user_tools
+        hydrology
+        methods
+
+    utilities
+        data_validation
+        files
+
+
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
@@ -55,3 +77,9 @@ tools.projection._validation = utilities.data_validation
 tools.shapes._validation = utilities.data_validation
 tools.tables._validation = utilities.data_validation
 tools.terrain_analysis._validation = utilities.data_validation
+
+user_tools.hydrology._validation = utilities.data_validation
+
+# Set projection methods
+data_manager.grids._files = utilities.files
+data_manager.grids._crs_from_epsg = tools.projection.crs_from_epsg

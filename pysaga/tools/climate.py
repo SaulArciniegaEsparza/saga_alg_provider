@@ -1,6 +1,8 @@
 """
 SAGA GIS algorithm provider
-Climate tools
+Climate tools:
+    climate_tools
+
 
 Author:
 Saul Arciniega Esparza
@@ -10,7 +12,9 @@ Mexico City
 """
 
 # env is the provider class
+import sys as _sys
 
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 # ==============================================================================
 # Library: climate_tools
@@ -58,7 +62,9 @@ def grid_ETpot(outgrid, tmean, tmin, tmax, month=1, day=None):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(tmean, [outgrid])
-    return(flag)  # grid_ETpot()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def sunrise_and_sunset(sunrise, sunset, day_len, grid, year=2017,
@@ -106,5 +112,7 @@ def sunrise_and_sunset(sunrise, sunset, day_len, grid, year=2017,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [sunrise, sunset, day_len])
-    return(flag)  # sunrise_and_sunset()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 

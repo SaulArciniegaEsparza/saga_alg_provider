@@ -17,6 +17,7 @@ Mexico City
 """
 
 # env is the provider class
+import sys as _sys
 import os as _os
 import numpy as _np
 import pandas as _pd
@@ -27,6 +28,8 @@ from tables import get_attribute_table as _get_attribute_table
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type
+
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 
 # ==============================================================================
@@ -86,7 +89,9 @@ def accumulated_cost(accumulated, allocation, cost, destinations, direction=None
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(cost, [accumulated, allocation])
-    return(flag)  # accumulated_cost()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def least_cost_paths(grid, points, profile_lines=None, profile_points=None, field_id=0,
@@ -159,7 +164,8 @@ def least_cost_paths(grid, points, profile_lines=None, profile_points=None, fiel
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(points, out_line + out_points)
-    return(flag)  # least_cost_paths()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def change_vector_analysis(out_dist, out_dir, initial, final, angle=True,
@@ -232,7 +238,8 @@ def change_vector_analysis(out_dist, out_dir, initial, final, angle=True,
                 row.reverse()
                 value_id = ''.join(row)
                 fout.write('%d\t"%s"\t""\t%.4f\t%.4f\n' % (colors[i], value_id, i, i))
-    return(flag)  # change_vector_analysis()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def covered_distance(outgrid, grids):
@@ -258,7 +265,8 @@ def covered_distance(outgrid, grids):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # covered_distance()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def layer_of_extreme_value(outgrid, grids, method=0):
@@ -290,7 +298,8 @@ def layer_of_extreme_value(outgrid, grids, method=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # layer_of_extreme_value()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def analytical_hierarchy_process(outgrid, grids, pairwise):
@@ -365,7 +374,8 @@ def analytical_hierarchy_process(outgrid, grids, pairwise):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # analytical_hierarchy_process()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def ordered_weighted_averaging(outgrid, grids, weights):
@@ -392,7 +402,8 @@ def ordered_weighted_averaging(outgrid, grids, weights):
 
     # Calculate average
     flag = calculator(outgrid, grids, formula=eq, data_type=7)
-    return(flag)  # ordered_weighted_averaging()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def soil_texture_classification(outgrid, sand, silt, clay, method=0, color=False):
@@ -509,7 +520,8 @@ def soil_texture_classification(outgrid, sand, silt, clay, method=0, color=False
 1778421	"Z"	"Sand"	7.000000	7.000000
 """
                 )
-    return(flag)  # soil_texture_classification()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -546,7 +558,8 @@ def normalization(outgrid, ingrid, drange=None):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)   # normalization()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def calculator(outgrid, grids, formula='g1 + 1', hgrids=None,
@@ -655,7 +668,8 @@ def calculator(outgrid, grids, formula='g1 + 1', hgrids=None,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(gridsys, [outgrid])
-    return(flag)  # calculator()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def grids_sum(outgrid, grids, nodata=False):
@@ -685,7 +699,8 @@ def grids_sum(outgrid, grids, nodata=False):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # grids_sum()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def grids_product(outgrid, grids, nodata=False):
@@ -715,7 +730,8 @@ def grids_product(outgrid, grids, nodata=False):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # grids_product()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def standardisation(outgrid, grid, stretch=1.0):
@@ -746,7 +762,8 @@ def standardisation(outgrid, grid, stretch=1.0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # standardisation()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def fuzzify(outgrid, grid, coefs, method=0, invert=False, adjust=False):
@@ -809,7 +826,8 @@ def fuzzify(outgrid, grid, coefs, method=0, invert=False, adjust=False):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # fuzzify()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def fuzzy_intersection(outgrid, grids, operator=0):
@@ -848,7 +866,8 @@ def fuzzy_intersection(outgrid, grids, operator=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # fuzzy_intersection()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def fuzzy_union(outgrid, grids, operator=0):
@@ -887,7 +906,8 @@ def fuzzy_union(outgrid, grids, operator=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grids[0], [outgrid])
-    return(flag)  # fuzzy_union()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -933,7 +953,8 @@ def simple_filter(outgrid, grid, method=0, kernel=1, radius=2):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # simple_filter()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def gaussian_filter(outgrid, grid, sigma=200, kernel=1, radius=5):
@@ -973,7 +994,8 @@ def gaussian_filter(outgrid, grid, sigma=200, kernel=1, radius=5):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # gaussian_filter()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def user_defined_filter(outgrid, grid, matrix=None, absolute=True):
@@ -1029,7 +1051,8 @@ def user_defined_filter(outgrid, grid, matrix=None, absolute=True):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # user_defined_filter()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def filter_clumps(outgrid, grid, min_size=10):
@@ -1057,7 +1080,8 @@ def filter_clumps(outgrid, grid, min_size=10):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # filter_clumps()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def morphological_filter(outgrid, grid, method=0, kernel=1, radius=2):
@@ -1099,7 +1123,8 @@ def morphological_filter(outgrid, grid, method=0, kernel=1, radius=2):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # morphological_filter()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def rank_filter(outgrid, grid, rank=50, kernel=1, radius=2):
@@ -1137,7 +1162,8 @@ def rank_filter(outgrid, grid, rank=50, kernel=1, radius=2):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # rank_filter()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def mesh_denoise(outgrid, grid, sigma=0.9, miniter=5, viter=50, vertex=True, zonly=False):
@@ -1178,7 +1204,8 @@ def mesh_denoise(outgrid, grid, sigma=0.9, miniter=5, viter=50, vertex=True, zon
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # mesh_denoise()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -1258,7 +1285,8 @@ def shapes_to_grid(outgrid, inshape, value_method=0, field=0, multiple_values=1,
         _validation.validate_crs(grid_extent, [outgrid])
     else:
         _validation.validate_crs(inshape, [outgrid])
-    return(flag)
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def inverse_distance_weighted(outgrid, points, field=0, method=1,
@@ -1339,7 +1367,8 @@ def inverse_distance_weighted(outgrid, points, field=0, method=1,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # inverse_distance_weighted()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def nearest_neighbour(outgrid, points, field=0, cellsize=100, grid_extent=None):
@@ -1380,7 +1409,8 @@ def nearest_neighbour(outgrid, points, field=0, cellsize=100, grid_extent=None):
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # nearest_neighbour()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def natural_neighbour(outgrid, points, field=0, method=1, weight=0,
@@ -1434,8 +1464,8 @@ def natural_neighbour(outgrid, points, field=0, method=1, weight=0,
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # natural_neighbour()
-
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def modified_quadratic_shepard(outgrid, points, field=0, neighbors=13, weight=19,
@@ -1483,7 +1513,8 @@ def modified_quadratic_shepard(outgrid, points, field=0, neighbors=13, weight=19
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # modified_quadratic_shepard()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def triangulation(outgrid, points, field=0, cellsize=100, grid_extent=None):
@@ -1524,7 +1555,8 @@ def triangulation(outgrid, points, field=0, cellsize=100, grid_extent=None):
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # triangulation()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def kernel_density_estimation(outgrid, points, field=0, radius=1.0, kernel=0,
@@ -1573,7 +1605,8 @@ def kernel_density_estimation(outgrid, points, field=0, radius=1.0, kernel=0,
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # kernel_density_estimation()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def angular_distance_weighted(outgrid, points, field=0, method=1,
@@ -1653,7 +1686,8 @@ def angular_distance_weighted(outgrid, points, field=0, method=1,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # angular_distance_weighted()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -1726,8 +1760,8 @@ def thin_plate_spline(outgrid, points, field=0, smethod=0, sradius=1000,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # thin_plate_spline()
-
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def multilevel_BSpline(outgrid, points, field=0, method=1, error=0.0001,
@@ -1781,7 +1815,8 @@ def multilevel_BSpline(outgrid, points, field=0, method=1, error=0.0001,
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outgrid])
-    return(flag)  # multilevel_BSpline()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -1850,7 +1885,8 @@ def resampling(outgrid, ingrid, scale_up=5, scale_down=3,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # resampling()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def mosaicking(outgrid, gridlist, resolution=0, dtype=7, resampling=3, overlap=1):
@@ -1911,7 +1947,8 @@ def mosaicking(outgrid, gridlist, resolution=0, dtype=7, resampling=3, overlap=1
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(gridlist[0], [outgrid])
-    return(flag)  # mosaicking()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def constant_grid(outgrid, grid_extent, value, dtype=7):
@@ -1951,7 +1988,8 @@ def constant_grid(outgrid, grid_extent, value, dtype=7):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid_extent, [outgrid])
-    return(flag)  # constant_grid()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def patching(outgrid, ingrid, patch, resampling=3):
@@ -1986,7 +2024,8 @@ def patching(outgrid, ingrid, patch, resampling=3):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # patching()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def close_gaps(outgrid, ingrid, mask=None, threshold=0.1):
@@ -2016,7 +2055,8 @@ def close_gaps(outgrid, ingrid, mask=None, threshold=0.1):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # close_gaps()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def buffer(outgrid, ingrid, dist=0):
@@ -2048,7 +2088,8 @@ def buffer(outgrid, ingrid, dist=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # buffer()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def change_values(outgrid, ingrid, identity=None, vrange=None):
@@ -2169,7 +2210,8 @@ def change_values(outgrid, ingrid, identity=None, vrange=None):
 
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # change_values()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def change_nodata_values(outgrid, ingrid, value=None, vrange=None):
@@ -2218,7 +2260,8 @@ def change_nodata_values(outgrid, ingrid, value=None, vrange=None):
 
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # change_nodata_values()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def reclassify_values(outgrid, ingrid, single=None, vrange=None,
@@ -2323,7 +2366,8 @@ def reclassify_values(outgrid, ingrid, single=None, vrange=None,
         _os.remove(table_file)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # reclassify_values()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def crop_to_data(outgrid, ingrid):
@@ -2346,7 +2390,8 @@ def crop_to_data(outgrid, ingrid):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # crop_to_data()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def invert_grid_nodata(outgrid, ingrid):
@@ -2370,7 +2415,8 @@ def invert_grid_nodata(outgrid, ingrid):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # invert_grid_nodata()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def grid_cell_index(outgrid, grid, order=0):
@@ -2402,7 +2448,8 @@ def grid_cell_index(outgrid, grid, order=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # grid_cell_index()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def grids_from_classified_grid(outgrid, grid, table, field_id=0):
@@ -2494,7 +2541,8 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, out_grids)
-    return(flag)  # grids_from_classified_grid()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffset=0,
@@ -2605,7 +2653,8 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
         _validation.validate_crs(shapes[0], [outgrid])
     elif type(proj) is str:
         _projection.set_crs(grids=outgrid, proj=proj)
-    return(flag)  # create_grid_system()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def masking(outgrid, ingrid, mask):
@@ -2632,7 +2681,8 @@ def masking(outgrid, ingrid, mask):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
-    return(flag)  # masking()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def close_gaps_with_spline(outgrid, grid, mask=None, cells=0, points=100,
@@ -2682,7 +2732,8 @@ def close_gaps_with_spline(outgrid, grid, mask=None, cells=0, points=100,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # close_gaps_with_spline()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
@@ -2730,7 +2781,8 @@ def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return (flag)  # copy_grid()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def copy_grid(outgrid, grid):
@@ -2754,7 +2806,8 @@ def copy_grid(outgrid, grid):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # copy_grid()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def invert_grid(outgrid, grid):
@@ -2778,4 +2831,5 @@ def invert_grid(outgrid, grid):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(grid, [outgrid])
-    return(flag)  # invert_grid()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))

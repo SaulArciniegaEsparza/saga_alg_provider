@@ -17,43 +17,11 @@
       <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="122">
-              <caret line="33" column="37" lean-forward="false" selection-start-line="33" selection-start-column="37" selection-end-line="33" selection-end-column="37" />
+            <state relative-caret-position="480">
+              <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
               <folding>
-                <element signature="e#191#240#0" expanded="true" />
+                <element signature="e#475#524#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="files.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pysaga/utilities/files.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="25">
-              <caret line="86" column="0" lean-forward="false" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
-              <folding>
-                <element signature="e#155#171#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="grids.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pysaga/data_manager/grids.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="972" column="15" lean-forward="true" selection-start-line="972" selection-start-column="4" selection-end-line="972" selection-end-column="15" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="data_validation.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pysaga/utilities/data_validation.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="382">
-              <caret line="165" column="34" lean-forward="true" selection-start-line="165" selection-start-column="34" selection-end-line="165" selection-end-column="34" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -61,10 +29,10 @@
       <file leaf-file-name="grids.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/grids.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="675">
-              <caret line="27" column="0" lean-forward="false" selection-start-line="27" selection-start-column="0" selection-end-line="28" selection-end-column="55" />
+            <state relative-caret-position="100">
+              <caret line="5" column="15" lean-forward="true" selection-start-line="5" selection-start-column="15" selection-end-line="5" selection-end-column="15" />
               <folding>
-                <element signature="e#275#291#0" expanded="true" />
+                <element signature="e#275#293#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -73,20 +41,20 @@
       <file leaf-file-name="climate.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/climate.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1375">
-              <caret line="55" column="0" lean-forward="false" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
+            <state relative-caret-position="80">
+              <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="projection.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="projection.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/projection.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7000">
-              <caret line="307" column="18" lean-forward="false" selection-start-line="307" selection-start-column="18" selection-end-line="307" selection-end-column="18" />
+            <state relative-caret-position="80">
+              <caret line="4" column="12" lean-forward="false" selection-start-line="4" selection-start-column="12" selection-end-line="4" selection-end-column="12" />
               <folding>
-                <element signature="e#166#182#0" expanded="true" />
+                <element signature="e#198#216#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -95,10 +63,10 @@
       <file leaf-file-name="tables.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/tables.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6800">
-              <caret line="300" column="0" lean-forward="false" selection-start-line="300" selection-start-column="0" selection-end-line="300" selection-end-column="0" />
+            <state relative-caret-position="500">
+              <caret line="118" column="4" lean-forward="false" selection-start-line="118" selection-start-column="4" selection-end-line="120" selection-end-column="79" />
               <folding>
-                <element signature="e#172#188#0" expanded="true" />
+                <element signature="e#204#222#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -107,22 +75,34 @@
       <file leaf-file-name="terrain_analysis.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/terrain_analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="189" column="4" lean-forward="false" selection-start-line="189" selection-start-column="4" selection-end-line="192" selection-end-column="88" />
+            <state relative-caret-position="140">
+              <caret line="7" column="19" lean-forward="false" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
               <folding>
-                <element signature="e#183#199#0" expanded="true" />
+                <element signature="e#272#290#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="shapes.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="shapes.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/shapes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="382">
-              <caret line="746" column="39" lean-forward="true" selection-start-line="746" selection-start-column="39" selection-end-line="746" selection-end-column="39" />
+            <state relative-caret-position="1652">
+              <caret line="1539" column="0" lean-forward="true" selection-start-line="1539" selection-start-column="0" selection-end-line="1539" selection-end-column="0" />
               <folding>
-                <element signature="e#162#178#0" expanded="true" />
+                <element signature="e#251#269#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="import_export.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pysaga/tools/import_export.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1680">
+              <caret line="3" column="4" lean-forward="false" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+              <folding>
+                <element signature="e#198#216#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -158,24 +138,24 @@
         <option value="$PROJECT_DIR$/pysaga/user_tools/_user_methods.py" />
         <option value="$PROJECT_DIR$/pysaga/provider.py" />
         <option value="$PROJECT_DIR$/pysaga/user_tools/__init__.py" />
-        <option value="$PROJECT_DIR$/pysaga/data_manager/grids.py" />
         <option value="$PROJECT_DIR$/pysaga/data_manager/__init__.py" />
         <option value="$PROJECT_DIR$/pysaga/user_tools/methods.py" />
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/pysaga/user_tools/hydrology.py" />
         <option value="$PROJECT_DIR$/pysaga/utilities/files.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/grids.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/import_export.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/climate.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/projection.py" />
         <option value="$PROJECT_DIR$/pysaga/tools/__init__.py" />
         <option value="$PROJECT_DIR$/pysaga/utilities/__init__.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/tables.py" />
         <option value="$PROJECT_DIR$/pysaga/_provider.py" />
-        <option value="$PROJECT_DIR$/pysaga/tools/terrain_analysis.py" />
+        <option value="$PROJECT_DIR$/pysaga/data_manager/grids.py" />
         <option value="$PROJECT_DIR$/pysaga/utilities/data_validation.py" />
-        <option value="$PROJECT_DIR$/pysaga/__init__.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/grids.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/climate.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/projection.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/tables.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/terrain_analysis.py" />
         <option value="$PROJECT_DIR$/pysaga/tools/shapes.py" />
+        <option value="$PROJECT_DIR$/pysaga/__init__.py" />
+        <option value="$PROJECT_DIR$/pysaga/tools/import_export.py" />
       </list>
     </option>
   </component>
@@ -220,6 +200,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -260,7 +241,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -297,15 +277,16 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16614583" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16614583" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19947916" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19947916" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -345,7 +326,7 @@
         <state relative-caret-position="69100">
           <caret line="2770" column="4" lean-forward="true" selection-start-line="2770" selection-start-column="4" selection-end-line="2771" selection-end-column="54" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
+            <element signature="e#275#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -363,7 +344,7 @@
         <state relative-caret-position="7000">
           <caret line="284" column="18" lean-forward="true" selection-start-line="284" selection-start-column="18" selection-end-line="284" selection-end-column="18" />
           <folding>
-            <element signature="e#166#182#0" expanded="true" />
+            <element signature="e#198#216#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -373,7 +354,7 @@
         <state relative-caret-position="6800">
           <caret line="278" column="0" lean-forward="true" selection-start-line="278" selection-start-column="0" selection-end-line="278" selection-end-column="0" />
           <folding>
-            <element signature="e#172#188#0" expanded="true" />
+            <element signature="e#204#222#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -383,7 +364,7 @@
         <state relative-caret-position="15025">
           <caret line="610" column="39" lean-forward="true" selection-start-line="610" selection-start-column="39" selection-end-line="610" selection-end-column="39" />
           <folding>
-            <element signature="e#183#199#0" expanded="true" />
+            <element signature="e#272#290#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -393,7 +374,7 @@
         <state relative-caret-position="880">
           <caret line="48" column="0" lean-forward="false" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#475#524#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -403,7 +384,7 @@
         <state relative-caret-position="240">
           <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="24" />
           <folding>
-            <element signature="e#155#171#0" expanded="true" />
+            <element signature="e#155#171#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -412,7 +393,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3500">
           <caret line="178" column="0" lean-forward="false" selection-start-line="178" selection-start-column="0" selection-end-line="178" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#79#95#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -421,7 +404,7 @@
         <state relative-caret-position="55180">
           <caret line="2759" column="4" lean-forward="false" selection-start-line="2759" selection-start-column="4" selection-end-line="2759" selection-end-column="4" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
+            <element signature="e#275#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -431,7 +414,7 @@
         <state relative-caret-position="580">
           <caret line="33" column="33" lean-forward="false" selection-start-line="33" selection-start-column="33" selection-end-line="33" selection-end-column="33" />
           <folding>
-            <element signature="e#166#182#0" expanded="true" />
+            <element signature="e#198#216#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -449,7 +432,7 @@
         <state relative-caret-position="800">
           <caret line="44" column="0" lean-forward="true" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#475#524#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -459,7 +442,7 @@
         <state relative-caret-position="240">
           <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="24" />
           <folding>
-            <element signature="e#155#171#0" expanded="true" />
+            <element signature="e#155#171#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -468,7 +451,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3500">
           <caret line="178" column="0" lean-forward="false" selection-start-line="178" selection-start-column="0" selection-end-line="178" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#79#95#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -477,7 +462,7 @@
         <state relative-caret-position="15460">
           <caret line="779" column="0" lean-forward="true" selection-start-line="779" selection-start-column="0" selection-end-line="779" selection-end-column="0" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
+            <element signature="e#275#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -495,7 +480,7 @@
         <state relative-caret-position="280">
           <caret line="18" column="22" lean-forward="true" selection-start-line="18" selection-start-column="22" selection-end-line="18" selection-end-column="22" />
           <folding>
-            <element signature="e#166#182#0" expanded="true" />
+            <element signature="e#198#216#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -505,7 +490,7 @@
         <state relative-caret-position="950">
           <caret line="42" column="23" lean-forward="false" selection-start-line="42" selection-start-column="12" selection-end-line="42" selection-end-column="23" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#475#524#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -515,7 +500,7 @@
         <state relative-caret-position="300">
           <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="24" />
           <folding>
-            <element signature="e#155#171#0" expanded="true" />
+            <element signature="e#155#171#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -524,7 +509,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1925">
           <caret line="80" column="0" lean-forward="true" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#79#95#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -533,7 +520,7 @@
         <state relative-caret-position="58000">
           <caret line="2320" column="0" lean-forward="true" selection-start-line="2320" selection-start-column="0" selection-end-line="2320" selection-end-column="0" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
+            <element signature="e#275#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -543,7 +530,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#475#524#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -553,7 +540,7 @@
         <state relative-caret-position="3280">
           <caret line="165" column="0" lean-forward="true" selection-start-line="165" selection-start-column="0" selection-end-line="165" selection-end-column="0" />
           <folding>
-            <element signature="e#155#171#0" expanded="true" />
+            <element signature="e#155#171#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -563,7 +550,7 @@
         <state relative-caret-position="1180">
           <caret line="67" column="0" lean-forward="true" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
+            <element signature="e#275#293#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -602,7 +589,7 @@
         <state relative-caret-position="675">
           <caret line="31" column="43" lean-forward="true" selection-start-line="31" selection-start-column="43" selection-end-line="31" selection-end-column="43" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#475#524#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -644,20 +631,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/import_export.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4553">
-          <caret line="5" column="22" lean-forward="true" selection-start-line="5" selection-start-column="22" selection-end-line="5" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools.py" />
     <entry file="file://$PROJECT_DIR$/pysaga/utilities/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
@@ -676,106 +650,117 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/tools/__init__.py" />
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/tables.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6800">
-          <caret line="300" column="0" lean-forward="false" selection-start-line="300" selection-start-column="0" selection-end-line="300" selection-end-column="0" />
-          <folding>
-            <element signature="e#172#188#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/projection.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7000">
-          <caret line="307" column="18" lean-forward="false" selection-start-line="307" selection-start-column="18" selection-end-line="307" selection-end-column="18" />
-          <folding>
-            <element signature="e#166#182#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/climate.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1375">
-          <caret line="55" column="0" lean-forward="false" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/_provider.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="425">
           <caret line="26" column="8" lean-forward="true" selection-start-line="26" selection-start-column="8" selection-end-line="26" selection-end-column="19" />
-          <folding>
-            <element signature="e#155#164#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/grids.py">
+    <entry file="file://$PROJECT_DIR$/pysaga/data_manager/grids.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="27" column="0" lean-forward="false" selection-start-line="27" selection-start-column="0" selection-end-line="28" selection-end-column="55" />
+        <state relative-caret-position="415">
+          <caret line="1117" column="0" lean-forward="true" selection-start-line="1117" selection-start-column="0" selection-end-line="1117" selection-end-column="0" />
           <folding>
-            <element signature="e#275#291#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/tools/terrain_analysis.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="189" column="4" lean-forward="false" selection-start-line="189" selection-start-column="4" selection-end-line="192" selection-end-column="88" />
-          <folding>
-            <element signature="e#183#199#0" expanded="true" />
+            <element signature="e#191#207#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/utilities/data_validation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="382">
-          <caret line="165" column="34" lean-forward="true" selection-start-line="165" selection-start-column="34" selection-end-line="165" selection-end-column="34" />
-          <folding />
+        <state relative-caret-position="80">
+          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding>
+            <element signature="e#79#95#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/utilities/files.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="25">
-          <caret line="86" column="0" lean-forward="false" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
+        <state relative-caret-position="120">
+          <caret line="6" column="17" lean-forward="true" selection-start-line="6" selection-start-column="17" selection-end-line="6" selection-end-column="17" />
           <folding>
-            <element signature="e#155#171#0" expanded="true" />
+            <element signature="e#155#171#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/data_manager/grids.py">
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/terrain_analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="972" column="15" lean-forward="true" selection-start-line="972" selection-start-column="4" selection-end-line="972" selection-end-column="15" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pysaga/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="122">
-          <caret line="33" column="37" lean-forward="false" selection-start-line="33" selection-start-column="37" selection-end-line="33" selection-end-column="37" />
+        <state relative-caret-position="140">
+          <caret line="7" column="19" lean-forward="false" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
           <folding>
-            <element signature="e#191#240#0" expanded="true" />
+            <element signature="e#272#290#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/tools/shapes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="382">
-          <caret line="746" column="39" lean-forward="true" selection-start-line="746" selection-start-column="39" selection-end-line="746" selection-end-column="39" />
+        <state relative-caret-position="1652">
+          <caret line="1539" column="0" lean-forward="true" selection-start-line="1539" selection-start-column="0" selection-end-line="1539" selection-end-column="0" />
           <folding>
-            <element signature="e#162#178#0" expanded="true" />
+            <element signature="e#251#269#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/tables.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="500">
+          <caret line="118" column="4" lean-forward="false" selection-start-line="118" selection-start-column="4" selection-end-line="120" selection-end-column="79" />
+          <folding>
+            <element signature="e#204#222#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/import_export.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1680">
+          <caret line="3" column="4" lean-forward="false" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+          <folding>
+            <element signature="e#198#216#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding>
+            <element signature="e#475#524#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/grids.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="100">
+          <caret line="5" column="15" lean-forward="true" selection-start-line="5" selection-start-column="15" selection-end-line="5" selection-end-column="15" />
+          <folding>
+            <element signature="e#275#293#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/climate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="80">
+          <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pysaga/tools/projection.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="80">
+          <caret line="4" column="12" lean-forward="false" selection-start-line="4" selection-start-column="12" selection-end-line="4" selection-end-column="12" />
+          <folding>
+            <element signature="e#198#216#0" expanded="true" />
           </folding>
         </state>
       </provider>

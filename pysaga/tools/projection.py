@@ -1,6 +1,8 @@
 """
 SAGA GIS algorithm provider
 Projection tools
+    User osr tools
+    pj_proj4
 
 Author:
 Saul Arciniega Esparza
@@ -10,6 +12,7 @@ Mexico City
 """
 
 # Import modules
+import sys as _sys
 import os as _os
 import shutil as _shutil
 import numpy as _np
@@ -19,6 +22,9 @@ try:
     import ogr as _ogr
 except:
     print('gdal library could not be imported, some tools in PySaga would be disabled!')
+
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
+
 
 # ==============================================================================
 # Library: User osr tools
@@ -44,7 +50,9 @@ def crs_from_epsg(code, asproj4=False):
         crs = crs.ExportToProj4()
     else:
         crs = crs.ExportToWkt()
-    return(crs)  # crs_from_epsg()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def reproject_points(points, in_crs, out_crs):
@@ -102,7 +110,9 @@ def reproject_points(points, in_crs, out_crs):
 
     # Output array
     newpoints = _np.array(newpoints)
-    return(newpoints)  # reproject_points()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -204,7 +214,9 @@ def set_crs(grids=None, shapes=None, precise=False, crs_method=0,
 
         # Run command
         flag = _env.run_command_logged(cmd)
-    return(flag)  # set_coordinate_reference_system()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def shape_transformation(outshape, inshape, precise=False, crs_method=0,
@@ -249,7 +261,9 @@ def shape_transformation(outshape, inshape, precise=False, crs_method=0,
 
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # End shape_transformation()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def grid_transformation(outgrid, ingrid, crs_method=0, resampling=4, keep_type=True,
@@ -311,4 +325,6 @@ def grid_transformation(outgrid, ingrid, crs_method=0, resampling=4, keep_type=T
 
     # Run command
     flag = _env.run_command_logged(cmd)
-    return(flag)  # End grid_coordinate_transformation()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))

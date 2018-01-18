@@ -1,6 +1,12 @@
 """
 SAGA GIS algorithm provider
 Shapes tools
+    shapes_grid
+    shapes_lines
+    shapes_points
+    shapes_polygons
+    shapes_tools
+
 
 Author:
 Saul Arciniega Esparza
@@ -10,6 +16,7 @@ Mexico City
 """
 
 # Import modules
+import sys as _sys
 import os as _os
 import pandas as _pd
 from collections import OrderedDict as _OrderedDict
@@ -19,6 +26,7 @@ import tables as _tables
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type
+_ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 
 # ==============================================================================
@@ -75,8 +83,8 @@ def grid_values_to_points(outpoints, points, grid, method=0,
     # Check if output grid has crs file
     _validation.validate_crs(points, [outpoints])
     if not flag:
-        raise EnvironmentError(('Error running "grid_values_to_points()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def grid_statistics_for_polygons(outshape, polygons, grid, method=0,
@@ -149,8 +157,8 @@ def grid_statistics_for_polygons(outshape, polygons, grid, method=0,
     # Check if output grid has crs file
     _validation.validate_crs(polygons, [outshape])
     if not flag:
-        raise EnvironmentError(('Error running "grid_statistics_for_polygons()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def contour_lines_from_grid(ingrid, lines=None, polygons=None, zstep=10, zmin=0,
@@ -196,8 +204,8 @@ def contour_lines_from_grid(ingrid, lines=None, polygons=None, zstep=10, zmin=0,
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [lines, polygons])
     if not flag:
-        raise EnvironmentError(('Error running "contour_lines_from_grid()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def vectorising_grid_classes(outshape, ingrid, method=1, classid=0,
@@ -234,8 +242,8 @@ def vectorising_grid_classes(outshape, ingrid, method=1, classid=0,
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outshape])
     if not flag:
-        raise EnvironmentError(('Error running "vectorising_grid_classes()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def clip_grid_with_polygons(outgrid, ingrid, polygon, extent=2):
@@ -281,8 +289,8 @@ def clip_grid_with_polygons(outgrid, ingrid, polygon, extent=2):
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
     if not flag:
-        raise EnvironmentError(('Error running "clip_grid_with_polygons()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def grid_system_extent(outshape, grid_system, method=0, proj=None, proj_file=None):
@@ -334,8 +342,8 @@ def grid_system_extent(outshape, grid_system, method=0, proj=None, proj_file=Non
     elif grid is not None:
         _projection.set_crs(shapes=outshape, crs_method=1, proj=grid);
     if not flag:
-        raise EnvironmentError(('Error running "grid_system_extent()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def clip_grid_with_rectangle(outgrid, ingrid, inshape, method=0):
@@ -368,8 +376,9 @@ def clip_grid_with_rectangle(outgrid, ingrid, inshape, method=0):
     # Check if output grid has crs file
     _validation.validate_crs(ingrid, [outgrid])
     if not flag:
-        raise EnvironmentError(('Error running "grid_system_extent()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
 
 # ==============================================================================
 # Library: shapes_lines
@@ -430,8 +439,8 @@ def line_polygon_intersection(lines, polygons, outshape, difference=False,
     # Check if output shape has crs file
     _validation.validate_crs(lines, [outshape, difference])
     if not flag:
-        raise EnvironmentError(('Error running "line_polygon_intersection()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def line_simplification(outshape, inshape, tol=1.0):
@@ -459,8 +468,8 @@ def line_simplification(outshape, inshape, tol=1.0):
     # Check if output shape has crs file
     _validation.validate_crs(inshape, [outshape])
     if not flag:
-        raise EnvironmentError(('Error running "line_polygon_intersection()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def line_dissolve(outshape, inshape, fields=None):
@@ -502,8 +511,8 @@ def line_dissolve(outshape, inshape, fields=None):
     # Check if output shape has crs file
     _validation.validate_crs(inshape, [outshape])
     if not flag:
-        raise EnvironmentError(('Error running "line_dissolve()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def line_smoothing(outshape, inshape, method=2, sigma=2, sensitivity=3,
@@ -549,8 +558,8 @@ def line_smoothing(outshape, inshape, method=2, sigma=2, sensitivity=3,
     # Check if output shape has crs file
     _validation.validate_crs(inshape, [outshape])
     if not flag:
-        raise EnvironmentError(('Error running "line_smoothing()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 # ==============================================================================
@@ -592,8 +601,8 @@ def convert_table_to_points(output, table, X, Y, Z=None, proj=None,
     elif proj_file is not None:
         _projection.set_crs(shapes=output, crs_method=1, proj=proj_file);
     if not flag:
-        raise EnvironmentError(('Error running "convert_table_to_points()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def point_distances(out_table, points, id_points=0, max_dist=0,
@@ -639,8 +648,8 @@ def point_distances(out_table, points, id_points=0, max_dist=0,
     # Run algorithm
     flag = _env.run_command_logged(cmd)
     if not flag:
-        raise EnvironmentError(('Error running "point_distances()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def convert_lines_to_points(output, lines, insert=0, dist=0, order=False):
@@ -688,8 +697,8 @@ def convert_lines_to_points(output, lines, insert=0, dist=0, order=False):
     # Check if output grid has crs file
     _validation.validate_crs(lines, [output])
     if not flag:
-        raise EnvironmentError(('Error running "convert_lines_to_points()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def add_coordinates_to_points(output, points):
@@ -711,8 +720,8 @@ def add_coordinates_to_points(output, points):
     # Check if output grid has crs file
     _validation.validate_crs(points, [output])
     if not flag:
-        raise EnvironmentError(('Error running "add_coordinates_to_points()",'
-                                ' please check the error file: {}').format(_env.errlog))
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
 def remove_duplicate_points(output, points, keep=0, field=0, values=0):
@@ -740,12 +749,9 @@ def remove_duplicate_points(output, points, keep=0, field=0, values=0):
     output = _validation.output_file(output, 'vector')
     points = _validation.input_file(points, 'vector', True)
     # Check methods
-    if keep < 0 or keep > 3:
-        keep = 0  # default method
-    if values < 0 or values > 3:
-        values = 0  # default method
-    keep, field = str(keep), str(field)
-    values = str(values)
+    keep = _validation.input_parameter(keep, 0, vrange=[0, 3], dtypes=[int])
+    values = _validation.input_parameter(values, 0, vrange=[0, 3], dtypes=[int])
+    field = str(field)
 
     # Create cmd and run
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '7', '-POINTS', points, '-RESULT', output,
@@ -753,47 +759,57 @@ def remove_duplicate_points(output, points, keep=0, field=0, values=0):
     flag = _env.run_command_logged(cmd)
 
     # Check if output grid has crs file
-    if not _files.has_crs_file(output):  # set first input layer crs
-        _projection.set_crs(shapes=output, crs_method=1, proj=points);
-    return(flag)  # add_coordinates_to_points()
+    _validation.validate_crs(points, [output])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Clip a point cloud using polygons
-# library: shapes_points  tool: 8
-# INPUTS:
-#  output    [string] output shape file with clipped points
-#  points    [string] shape file of points
-#  polygons  [string] shape file of polygons
-#  field     [int,string] attribute id number or name of the
-#             input polygon. By default 0
 def clip_points_with_polygons(output, points, polygons, field=0):
+    """
+    Clip a point cloud using polygons
+
+    library: shapes_points  tool: 8
+
+    INPUTS:
+     output    [string] output shape file with clipped points
+     points    [string] shape file of points
+     polygons  [string] shape file of polygons
+     field     [int,string] attribute id number or name of the
+                input polygon. By default 0
+    """
     # Check inputs
-    output = _files.default_file_ext(output, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    polygons = _files.default_file_ext(polygons, 'vector')
+    output = _validation.output_file(output, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    polygons = _validation.input_file(polygons, 'vector', True)
     # Run command
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '8', '-CLIPS', output, '-POINTS',
            points, '-POLYGONS', polygons, '-FIELD', str(field), '-METHOD', '0']
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(output):  # set first input layer crs
-        _projection.set_crs(shapes=output, crs_method=1, proj=points);
-    return(flag)  # clip_points_with_polygons()
+    _validation.validate_crs(points, [output])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Retrieves for each point the selected attributes from those polygon, which contain the point.
-# library: shapes_points  tool: 10
-# INPUTS
-#  output     [string] output shape file with clipped points
-#  points     [string] shape file of points
-#  polygons   [string] shapefile of polygons
-#  fields     [int,string, list, tuple] attribute id number or name of the input polygon.
-#              fields can be a list or tuple of integers or strings
 def add_polygon_attributes_to_points(outshape, points, polygons, fields=0):
+    """
+    Retrieves for each point the selected attributes from those polygon, which contain the point.
+
+    library: shapes_points  tool: 10
+
+    INPUTS
+     output     [string] output shape file with clipped points
+     points     [string] shape file of points
+     polygons   [string] shapefile of polygons
+     fields     [int,string, list, tuple] attribute id number or name of the input polygon.
+                 fields can be a list or tuple of integers or strings
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    polygons = _files.default_file_ext(polygons, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    polygons = _validation.input_file(polygons, 'vector', True)
     # Check fields
     if type(fields) in [int, str]:
         fields = str(fields)
@@ -807,65 +823,81 @@ def add_polygon_attributes_to_points(outshape, points, polygons, fields=0):
            points, '-POLYGONS', polygons, '-FIELDS', fields]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=points);
-    return(flag)  # add_polygon_attributes_to_points()
+    _validation.validate_crs(points, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Convert Multipoints to Points
-# library: shapes_points  tool: 15
-# INPUTS:
-#  output    [string] output points shape file
-#  points    [string] input multipoints shape file
 def convert_multipoints_to_points(output, multipoints):
+    """
+    Convert Multipoints to Points
+
+    library: shapes_points  tool: 15
+
+    INPUTS:
+     output    [string] output points shape file
+     points    [string] input multipoints shape file
+    """
     # Check inputs
-    multipoints = _files.default_file_ext(multipoints, 'vector')
-    output = _files.default_file_ext(output, 'vector')
+    output = _validation.output_file(output, 'vector')
+    multipoints = _validation.input_file(multipoints, 'vector', True)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '15', '-POINTS', output,
            '-MULTIPOINTS', multipoints]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(output):  # set first input layer crs
-        _projection.set_crs(shapes=output, crs_method=1, proj=multipoints);
-    return(flag)  # convert_multipoints_to_points()
+    _validation.validate_crs(multipoints, [output])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Creates Thiessen or Voronoi polygons for given point data set
-# library: shapes_points  tool: 16
-# INPUTS:
-#  output    [string] output shape file with thiessen polygons
-#  points    [string] shape file of points
-#  frame     [float] frame size in projection units
 def thiessen_polygons(output, points, frame=10.0):
+    """
+    Creates Thiessen or Voronoi polygons for given point data set
+
+    library: shapes_points  tool: 16
+
+    INPUTS:
+     output    [string] output shape file with thiessen polygons
+     points    [string] shape file of points
+     frame     [float] frame size in projection units
+    """
     # Check inputs
-    points = _files.default_file_ext(points, 'vector')
-    output = _files.default_file_ext(output, 'vector')
+    output = _validation.output_file(output, 'vector')
+    points = _validation.input_file(points, 'vector', True)
     frame = str(frame)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '16', '-POINTS', points,
            '-POLYGONS', output, '-FRAME', frame]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(output):  # set first input layer crs
-        _projection.set_crs(shapes=output, crs_method=1, proj=points);
-    return(flag)  # thiessen_polygons()
+    _validation.validate_crs(points, [output])
+    if not flag:
+        raise EnvironmentError(('Error running "thiessen_polygons()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
-# Snap points to points
-# library: shapes_points  tool: 19
-# INPUTS:
-#  out_points   [string] output snapped points
-#  out_moves    [string] output distance shape file
-#  points       [string] input points shape file
-#  snap         [string] input snap points shape file
-#  dist         [float] search distance [map units]
 def snap_points_to_points(out_points, out_moves, points, snap, dist=0):
+    """
+    Snap points to points. This tool moves the input points to the nearest point
+    from the snap points layer
+
+    library: shapes_points  tool: 19
+
+    INPUTS:
+     out_points   [string] output snapped points
+     out_moves    [string] output distance shape file
+     points       [string] input points shape file
+     snap         [string] input snap points shape file
+     dist         [float] search distance [map units]
+    """
     # Check inputs
-    out_points = _files.default_file_ext(out_points, 'vector')
-    out_moves = _files.default_file_ext(out_moves, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    snap = _files.default_file_ext(snap, 'vector')
+    out_points = _validation.output_file(out_points, 'vector')
+    out_moves = _validation.output_file(out_moves, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    snap = _validation.input_file(snap, 'vector', True)
     # Convert to strings
     dist = str(dist)
 
@@ -876,27 +908,30 @@ def snap_points_to_points(out_points, out_moves, points, snap, dist=0):
     flag = _env.run_command_logged(cmd)
 
     # Check if output grid has crs file
-    if not _files.has_crs_file(out_points):  # set first input layer crs
-        _projection.set_crs(shapes=out_points, crs_method=1, proj=points);
-    if not _files.has_crs_file(out_moves):  # set first input layer crs
-        _projection.set_crs(shapes=out_moves, crs_method=1, proj=points);
-    return(flag)  # snap_points_to_lines()
+    _validation.validate_crs(points, [out_points, out_moves])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Snap points to lines
-# library: shapes_points  tool: 19
-# INPUTS:
-#  out_points   [string] output snapped points
-#  out_moves    [string] output distance shape file
-#  points       [string] input points shape file
-#  lines        [string] input snap lines shape file
-#  dist         [float] search distance [map units]
 def snap_points_to_lines(out_points, out_moves, points, lines, dist=0):
+    """
+    Snap points to lines. This tool moves the input points to the nearest line
+
+    library: shapes_points  tool: 19
+
+    INPUTS:
+     out_points   [string] output snapped points
+     out_moves    [string] output distance shape file
+     points       [string] input points shape file
+     lines        [string] input snap lines shape file
+     dist         [float] search distance [map units]
+    """
     # Check inputs
-    out_points = _files.default_file_ext(out_points, 'vector')
-    out_moves = _files.default_file_ext(out_moves, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    lines = _files.default_file_ext(lines, 'vector')
+    out_points = _validation.output_file(out_points, 'vector')
+    out_moves = _validation.output_file(out_moves, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    lines = _validation.input_file(lines, 'vector', True)
     # Convert to strings
     dist = str(dist)
 
@@ -907,41 +942,43 @@ def snap_points_to_lines(out_points, out_moves, points, lines, dist=0):
     flag = _env.run_command_logged(cmd)
 
     # Check if output grid has crs file
-    if not _files.has_crs_file(out_points):  # set first input layer crs
-        _projection.set_crs(shapes=out_points, crs_method=1, proj=points);
-    if not _files.has_crs_file(out_moves):  # set first input layer crs
-        _projection.set_crs(shapes=out_moves, crs_method=1, proj=points);
-    return(flag)  # snap_points_to_lines()
+    _validation.validate_crs(points, [out_points, out_moves])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# library: shapes_points  tool: 20
-# INPUTS:
-#  out_points   [string] output snapped points
-#  out_moves    [string] output distance shape file
-#  points       [string] input points shape file
-#  grids        [string] input grid to span points
-#  dist         [float] search distance [map units]
-#  method       [int] method for search distance shape
-#                [0] circle (default)
-#                [1] square
-#  extreme      [int] method for search extreme value
-#                [0] minimum
-#                [1] maximum (default)
 def snap_points_to_grid(out_points, out_moves, points, grid, dist=0,
                         method=0, extreme=1):
+    """
+    Snap points to grid. This tool moves the input points to the nearest pixel
+    with maximum or minimum value using a search distance
+
+    library: shapes_points  tool: 20
+
+    INPUTS:
+     out_points   [string] output snapped points
+     out_moves    [string] output distance shape file
+     points       [string] input points shape file
+     grids        [string] input grid to span points
+     dist         [float] search distance [map units]
+     method       [int] method for search distance shape
+                   [0] circle (default)
+                   [1] square
+     extreme      [int] method for search extreme value
+                   [0] minimum
+                   [1] maximum (default)
+    """
     # Check inputs
-    out_points = _files.default_file_ext(out_points, 'vector')
-    out_moves = _files.default_file_ext(out_moves, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    grid = _files.default_file_ext(grid, 'grid')
+    out_points = _validation.output_file(out_points, 'vector')
+    out_moves = _validation.output_file(out_moves, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    grid = _validation.input_file(grid, 'grid', False)
 
     # Convert to strings
     dist = str(dist)
-    if method < 0 or method > 1:
-        method = 0  # default method
-    if extreme < 0 or extreme > 1:
-        extreme = 0  # default method
-    method, extreme = str(method), str(extreme)
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[0, 1])
+    extreme = _validation.input_parameter(extreme, 0, vrange=[0, 1], dtypes=[0, 1])
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '20', '-INPUT', points,
@@ -950,27 +987,31 @@ def snap_points_to_grid(out_points, out_moves, points, grid, dist=0,
     flag = _env.run_command_logged(cmd)
 
     # Check if output grid has crs file
-    if not _files.has_crs_file(out_points):  # set first input layer crs
-        _projection.set_crs(shapes=out_points, crs_method=1, proj=points);
-    if not _files.has_crs_file(out_moves):  # set first input layer crs
-        _projection.set_crs(shapes=out_moves, crs_method=1, proj=points);
-    return(flag)  # snap_points_to_grid()
+    _validation.validate_crs(points, [out_points, out_moves])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-#==============================================================================
+# ==============================================================================
 # Library: shapes_polygons
-#==============================================================================
+# ==============================================================================
 
-# Creates a points layer containing the centroids of the input polygon layer
-# library: shapes_polygons  tool: 1
-# INPUTS
-#  outshape           [string] output centroids of polygons
-#  inshape            [string] input polygons layer
-#  parts              [boolean] set True if you want centroids for each parts
+
 def polygon_centroids(outshape, inshape, parts=False):
+    """
+    Creates a points layer containing the centroids of the input polygon layer
+
+    library: shapes_polygons  tool: 1
+
+    INPUTS
+     outshape           [string] output centroids of polygons
+     inshape            [string] input polygons layer
+     parts              [boolean] set True if you want centroids for each parts
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Convert to strings
     parts = str(int(parts))
     # Create cmd
@@ -979,35 +1020,40 @@ def polygon_centroids(outshape, inshape, parts=False):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # polygon_centroids()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Calculates statistics over all points falling in a polygon
-# library: shapes_polygons  tool: 2
-# INPUTS
-#  outpolygons      [string] output shape file of polygons with point statistics
-#  points           [string] input points shape
-#  polygons         [string] input polygons
-#  fields           [int, str, list] index or name of the field for the statistic
-#                    computing. fields can be a list with the name or index of
-#                    multiple fields
-#  field_names      [int] field naming method for statistics (for example sum of X)
-#                    [0] variable type + original name (SUM_X)
-#                    [1] original name + variable type (X_SUM)
-#                    [2] original name (X)
-#                    [3] variable type (SUM)
-# available statistics (and their default values): mean (Mean=True), sum (Sum=False),
-#  variance (Var=False), standard deviation (Std=False), minimum (Min=False),
-#  maximum (Max=False), count points (Count=False)
 def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
                                   field_names=1, Mean=True, Sum=False, Var=False,
                                   Std=False, Min=False, Max=False, Count=False):
+    """
+    Calculates statistics over all points falling in a polygon
+
+    library: shapes_polygons  tool: 2
+
+    INPUTS
+     outpolygons      [string] output shape file of polygons with point statistics
+     points           [string] input points shape
+     polygons         [string] input polygons
+     fields           [int, str, list] index or name of the field for the statistic
+                       computing. fields can be a list with the name or index of
+                       multiple fields
+     field_names      [int] field naming method for statistics (for example sum of X)
+                       [0] variable type + original name (SUM_X)
+                       [1] original name + variable type (X_SUM)
+                       [2] original name (X)
+                       [3] variable type (SUM)
+    available statistics (and their default values): mean (Mean=True), sum (Sum=False),
+     variance (Var=False), standard deviation (Std=False), minimum (Min=False),
+     maximum (Max=False), count points (Count=False)
+    """
     # Check inputs
-    outpolygons = _files.default_file_ext(outpolygons, 'vector')
-    points = _files.default_file_ext(points, 'vector')
-    polygons = _files.default_file_ext(polygons, 'vector')
+    outpolygons = _validation.output_file(outpolygons, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+    polygons = _validation.input_file(polygons, 'vector', True)
     # fields
     if type(fields) in [int, str]:
         fields = str(fields)
@@ -1030,23 +1076,28 @@ def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outpolygons):  # set first input layer crs
-        _projection.set_crs(shapes=outpolygons, crs_method=1, proj=points);
-    return(flag)  # point_statistics_for_polygons()
+    _validation.validate_crs(points, [outpolygons])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Converts lines to polygons. Line arcs are closed to polygons simply by
-# connecting the last point with the first.
-# library: shapes_polygons  tool: 3
-# INPUTS
-#  outshape       [string] output line layers
-#  inshape        [string] input polygons
-#  single         [boolean] set True to create single multipart polygon
-#  merge          [boolean] set True to merge line parts to one polygon
 def convert_lines_to_polygons(outshape, inshape, single=True, merge=True):
+    """
+    Converts lines to polygons. Line arcs are closed to polygons simply by
+    connecting the last point with the first.
+
+    library: shapes_polygons  tool: 3
+
+    INPUTS
+     outshape       [string] output line layers
+     inshape        [string] input polygons
+     single         [boolean] set True to create single multipart polygon
+     merge          [boolean] set True to merge line parts to one polygon
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Convert to strings
     single = str(int(single))
     merge = str(int(merge))
@@ -1056,42 +1107,47 @@ def convert_lines_to_polygons(outshape, inshape, single=True, merge=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # convert_lines_to_polygons()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Merges polygons, which share the same attribute value, and (optionally)
-# dissolves borders between adjacent polygon parts. If no attribute or
-# combination of attributes is chosen, all polygons will be merged.
-# library: shapes_polygons  tool: 5
-# INPUTS
-#  outshape       [string] output merged polygons
-#  polygons       [string] input polygons
-#  fields         [int, str, list] field name or field index for merge polygons
-#                  with the same value. Parameter fields can be a list of field
-#                  names or indexes. If fields is None (default) all polygons are
-#                  merged. For old_versions of SAGA, only 3 fields can be used
-#  keep_bounds   [boolean] keep polygons boundaries
-#  min_area      [float] minimum of merged polygons (only for new versions of SAGA)
-#  stat_fields   [int, str, list] index, name or list of fields for statistics
-#                 estimation for merged polygons. If stat_fields is None, fields
-#                 statistics are not computing
-#  field_names   [int] statistics fields names
-#                 [0] variable type + original name (default)
-#                 [1] original name + variable type
-#                 [2] original name
-#                 [3] variable type
-# Available fields and their default values: sum (Sum=False), mean (Mean=False),
-# minimum (Min=False), maximum (Max=False), range (Range=False), variance (Var=False)
-# standard deviation (Std=False), values list of merged polygons (Listing=False) (list is
-# separated with a0|a1|...|an), number of values of merged polygons (Count=False)
 def polygon_dissolve(outshape, polygons, fields=None, keep_bounds=False, min_area=0,
                      stat_fields=None, Sum=False, Mean=False, Min=False, Max=False, Range=False,
                      Var=False, Std=False, Listing=False, Count=False, field_names=0):
+    """
+    Merges polygons, which share the same attribute value, and (optionally)
+    dissolves borders between adjacent polygon parts. If no attribute or
+    combination of attributes is chosen, all polygons will be merged.
+
+    library: shapes_polygons  tool: 5
+
+    INPUTS
+     outshape       [string] output merged polygons
+     polygons       [string] input polygons
+     fields         [int, str, list] field name or field index for merge polygons
+                     with the same value. Parameter fields can be a list of field
+                     names or indexes. If fields is None (default) all polygons are
+                     merged. For old_versions of SAGA, only 3 fields can be used
+     keep_bounds   [boolean] keep polygons boundaries
+     min_area      [float] minimum of merged polygons (only for new versions of SAGA)
+     stat_fields   [int, str, list] index, name or list of fields for statistics
+                    estimation for merged polygons. If stat_fields is None, fields
+                    statistics are not computing
+     field_names   [int] statistics fields names
+                    [0] variable type + original name (default)
+                    [1] original name + variable type
+                    [2] original name
+                    [3] variable type
+    Available fields and their default values: sum (Sum=False), mean (Mean=False),
+    minimum (Min=False), maximum (Max=False), range (Range=False), variance (Var=False)
+    standard deviation (Std=False), values list of merged polygons (Listing=False) (list is
+    separated with a0|a1|...|an), number of values of merged polygons (Count=False)
+    """
     # Check inputs
-    polygons = _files.default_file_ext(polygons, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    polygons = _validation.input_file(polygons, 'vector', True)
     # fields
     if type(fields) in [int, str]:
         fields = [str(fields)]  # create fields list
@@ -1135,41 +1191,51 @@ def polygon_dissolve(outshape, polygons, fields=None, keep_bounds=False, min_are
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=polygons);
-    return(flag)  # polygon_dissolve()
+    _validation.validate_crs(polygons, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Convert Polygon/Line vertices to points
-# library: shapes_polygons  tool: 6
-# INPUTS
-#  outshape           [string] output points layer
-#  inshape            [string] input lines or polygons layer
 def convert_vertices_to_points(outshape, inshape):
+    """
+    Convert Polygon/Line vertices to points
+
+    library: shapes_polygons  tool: 6
+
+    INPUTS
+     outshape           [string] output points layer
+     inshape            [string] input lines or polygons layer
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '6', '-SHAPES', inshape,
            '-POINTS', outshape]
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # convert_vertices_to_points()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Compute various indices describing the shape of polygons.
-# Indices are based on area, perimeter, maximum distance between the vertices of a polygon.
-# library: shapes_polygons  tool: 7
-# INPUTS
-#  outshape           [string] output polygons with indices
-#  inshape            [string] input polygons layer
 def polygon_shape_indices(outshape, inshape):
+    """
+    Compute various indices describing the shape of polygons.
+    Indices are based on area, perimeter, maximum distance between the vertices of a polygon.
+
+    library: shapes_polygons  tool: 7
+
+    INPUTS
+     outshape           [string] output polygons with indices
+     inshape            [string] input polygons layer
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '7', '-SHAPES', inshape,
            '-INDEX', outshape]
@@ -1178,43 +1244,55 @@ def polygon_shape_indices(outshape, inshape):
     # Check if output shape has crs file
     if not _files.has_crs_file(outshape):  # set first input layer crs
         _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # polygon_shape_indices()
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# library: shapes_polygons  tool: 8
-# INPUTS
-#  outshape           [string] splited polygons
-#  polygons           [string] input polygons layer
-#  lines              [string] input lines layer
 def polygon_line_intersection(outshape, polygons, lines):
+    """
+    Polygon-line intersection. Splits polygons with lines.
+
+    library: shapes_polygons  tool: 8
+
+    INPUTS
+     outshape           [string] splited polygons
+     polygons           [string] input polygons layer
+     lines              [string] input lines layer
+    """
     # Check inputs
-    polygons = _files.default_file_ext(polygons, 'vector')
-    lines = _files.default_file_ext(lines, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    polygons = _validation.input_file(polygons, 'vector', True)
+    lines = _validation.input_file(lines, 'vector', True)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '8', '-POLYGONS', polygons,
            '-LINES', lines, '-INTERSECT', outshape]
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=polygons);
-    return(flag)  # polygon_line_intersection()
+    _validation.validate_crs(polygons, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Splits parts of multipart polygons into separate polygons.
-# This can be done only for islands (outer rings) or for all parts
-# (inner and outer rings) by checking the 'lakes' option.
-# library: shapes_polygons  tool: 10
-# INPUTS
-#  outshape           [string] output clipped layer
-#  inshape            [string] clipper polygon
-#  layes              [boolean] set True if you want separate all parts (inner
-#                      and outer rings), if False only islands are separated.
 def polygon_parts(outshape, inshape, lakes=True):
+    """
+    Splits parts of multipart polygons into separate polygons.
+    This can be done only for islands (outer rings) or for all parts
+    (inner and outer rings) by checking the 'lakes' option.
+
+    library: shapes_polygons  tool: 10
+
+    INPUTS
+     outshape           [string] output clipped layer
+     inshape            [string] clipper polygon
+     layes              [boolean] set True if you want separate all parts (inner
+                         and outer rings), if False only islands are separated.
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Convert to strings
     lakes = str(int(lakes))
     # Create cmd
@@ -1223,23 +1301,28 @@ def polygon_parts(outshape, inshape, lakes=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # polygon_parts()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Clipping of vector layers with a polygon layer
-# library: shapes_polygons  tool: 11
-# INPUTS
-#  outshape           [string] output clipped layers
-#  clip_shape         [string] clipper polygon
-#  input_shape        [string] layer to be clipped
-#  dissolve           [boolean] set True if you want dissolve clipped shapes
 def polygon_clipping(outshape, clip_shape, input_shape, dissolve=True):
+    """
+    Clipping of vector layers with a polygon layer
+
+    library: shapes_polygons  tool: 11
+
+    INPUTS
+     outshape           [string] output clipped layers
+     clip_shape         [string] clipper polygon
+     input_shape        [string] layer to be clipped
+     dissolve           [boolean] set True if you want dissolve clipped shapes
+    """
     # Check inputs
-    clip_shape = _files.default_file_ext(clip_shape, 'vector')
-    input_shape = _files.default_file_ext(input_shape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    clip_shape = _validation.input_file(clip_shape, 'vector', True)
+    input_shape = _validation.input_file(input_shape, 'vector', True)
     # Convert to strings
     dissolve = str(int(dissolve))
     # Create cmd
@@ -1248,22 +1331,27 @@ def polygon_clipping(outshape, clip_shape, input_shape, dissolve=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=clip_shape);
-    return(flag)  # polygon_clipping()
+    _validation.validate_crs(input_shape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Self-intersection of one layer's polygons
-# library: shapes_polygons  tool: 12
-# INPUTS
-#  outshape       [string] output intersected polygons
-#  inshape        [string] polygons to intersect
-#  field          [string, int] field ID or field name of attribute table to
-#                  name new polygons intersection.
 def polygon_selfintersection(outshape, inshape, field=None):
+    """
+    Self-intersection of one layer's polygons
+
+    library: shapes_polygons  tool: 12
+
+    INPUTS
+     outshape       [string] output intersected polygons
+     inshape        [string] polygons to intersect
+     field          [string, int] field ID or field name of attribute table to
+                     name new polygons intersection.
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Convert to strings
     if field is None:
         field = -1
@@ -1274,24 +1362,30 @@ def polygon_selfintersection(outshape, inshape, field=None):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # polygon_clipping()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Calculates the geometric intersection of the overlayed polygon layers,
-# i.e. layer A and layer B.
-# library: shapes_polygons  tool: 14
-# INPUTS
-#  outshape       [string] output intersected polygons
-#  layerA         [string] input shape
-#  layerB         [string] input shape
-#  split_parts    [boolean] set True if you want multipart polygons to become separate polygons.
 def intersect(outshape, layerA, layerB, split_parts=True):
+    """
+    Calculates the geometric intersection of the overlayed polygon layers,
+    i.e. layer A and layer B.
+
+    library: shapes_polygons  tool: 14
+
+    INPUTS
+     outshape       [string] output intersected polygons
+     layerA         [string] input shape
+     layerB         [string] input shape
+     split_parts    [boolean] set True if you want multipart polygons to
+                     become separate polygons.
+    """
     # Check inputs
-    layerA = _files.default_file_ext(layerA, 'vector')
-    layerB = _files.default_file_ext(layerB, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    layerA = _validation.input_file(layerA, 'vector', True)
+    layerB = _validation.input_file(layerB, 'vector', True)
     # Convert to strings
     split = str(int(split_parts))
     # Create cmd
@@ -1300,24 +1394,30 @@ def intersect(outshape, layerA, layerB, split_parts=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=layerA);
-    return(flag)  # intersect()
+    _validation.validate_crs(layerA, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Calculates the geometric difference of the overlayed polygon layers,
-# i.e. layer A less layer B.
-# library: shapes_polygons  tool: 15
-# INPUTS
-#  outshape       [string] output difference polygons
-#  layerA         [string] input shape
-#  layerB         [string] input shape
-#  split_parts    [boolean] set True if you want multipart polygons to become separate polygons.
 def difference(outshape, layerA, layerB, split_parts=True):
+    """
+    Calculates the geometric difference of the overlayed polygon layers,
+    i.e. layer A less layer B.
+
+    library: shapes_polygons  tool: 15
+
+    INPUTS
+     outshape       [string] output difference polygons
+     layerA         [string] input shape
+     layerB         [string] input shape
+     split_parts    [boolean] set True if you want multipart polygons
+                     to become separate polygons.
+    """
     # Check inputs
-    layerA = _files.default_file_ext(layerA, 'vector')
-    layerB = _files.default_file_ext(layerB, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    layerA = _validation.input_file(layerA, 'vector', True)
+    layerB = _validation.input_file(layerB, 'vector', True)
     # Convert to strings
     split = str(int(split_parts))
     # Create cmd
@@ -1326,24 +1426,30 @@ def difference(outshape, layerA, layerB, split_parts=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=layerA);
-    return(flag)  # difference()
+    _validation.validate_crs(layerA, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Calculates the symmetrical geometric difference of the overlayed polygon layers,
-# i.e. layer A less layer B plus layer B less layer A.
-# library: shapes_polygons  tool: 16
-# INPUTS
-#  outshape       [string] output difference polygons
-#  layerA         [string] input shape
-#  layerB         [string] input shape
-#  split_parts    [boolean] set True if you want multipart polygons to become separate polygons.
 def symetrical_difference(outshape, layerA, layerB, split_parts=True):
+    """
+    Calculates the symmetrical geometric difference of the overlayed polygon layers,
+    i.e. layer A less layer B plus layer B less layer A.
+
+    library: shapes_polygons  tool: 16
+
+    INPUTS
+     outshape       [string] output difference polygons
+     layerA         [string] input shape
+     layerB         [string] input shape
+     split_parts    [boolean] set True if you want multipart polygons to
+                     become separate polygons.
+    """
     # Check inputs
-    layerA = _files.default_file_ext(layerA, 'vector')
-    layerB = _files.default_file_ext(layerB, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    layerA = _validation.input_file(layerA, 'vector', True)
+    layerB = _validation.input_file(layerB, 'vector', True)
     # Convert to strings
     split = str(int(split_parts))
     # Create cmd
@@ -1352,24 +1458,30 @@ def symetrical_difference(outshape, layerA, layerB, split_parts=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=layerA);
-    return(flag)  # symetrical_difference()
+    _validation.validate_crs(layerA, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Calculates the geometric union of the overlayed polygon layers,
-# i.e. the intersection plus the symmetrical difference of layers A and B.
-# library: shapes_polygons  tool: 17
-# INPUTS
-#  outshape       [string] output union polygons
-#  layerA         [string] input shape
-#  layerB         [string] input shape
-#  split_parts    [boolean] set True if you want multipart polygons to become separate polygons.
 def polygon_union(outshape, layerA, layerB, split_parts=True):
+    """
+    Calculates the geometric union of the overlayed polygon layers,
+    i.e. the intersection plus the symmetrical difference of layers A and B.
+
+    library: shapes_polygons  tool: 17
+
+    INPUTS
+     outshape       [string] output union polygons
+     layerA         [string] input shape
+     layerB         [string] input shape
+     split_parts    [boolean] set True if you want multipart polygons
+                     to become separate polygons.
+    """
     # Check inputs
-    layerA = _files.default_file_ext(layerA, 'vector')
-    layerB = _files.default_file_ext(layerB, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    layerA = _validation.input_file(layerA, 'vector', True)
+    layerB = _validation.input_file(layerB, 'vector', True)
     # Convert to strings
     split = str(int(split_parts))
     # Create cmd
@@ -1378,25 +1490,31 @@ def polygon_union(outshape, layerA, layerB, split_parts=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=layerA);
-    return(flag)  # polygon_union()
+    _validation.validate_crs(layerA, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Updates features of layer A with the features of layer B, i.e. all features
-# of layer B will be supplemented with the difference of layer A less layer B plus.
-# It is assumed, that both input layers share the same attribute structure.
-# library: shapes_polygons  tool: 18
-# INPUTS
-#  outshape       [string] output union polygons
-#  layerA         [string] input shape
-#  layerB         [string] input shape
-#  split_parts    [boolean] set True if you want multipart polygons to become separate polygons.
 def polygon_update(outshape, layerA, layerB, split_parts=True):
+    """
+    Updates features of layer A with the features of layer B, i.e. all features
+    of layer B will be supplemented with the difference of layer A less layer B plus.
+    It is assumed, that both input layers share the same attribute structure.
+
+    library: shapes_polygons  tool: 18
+
+    INPUTS
+     outshape       [string] output union polygons
+     layerA         [string] input shape
+     layerB         [string] input shape
+     split_parts    [boolean] set True if you want multipart polygons
+                     to become separate polygons.
+    """
     # Check inputs
-    layerA = _files.default_file_ext(layerA, 'vector')
-    layerB = _files.default_file_ext(layerB, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    layerA = _validation.input_file(layerA, 'vector', True)
+    layerB = _validation.input_file(layerB, 'vector', True)
     # Convert to strings
     split = str(int(split_parts))
     # Create cmd
@@ -1405,50 +1523,61 @@ def polygon_update(outshape, layerA, layerB, split_parts=True):
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=layerA);
-    return(flag)  # polygon_union()
+    _validation.validate_crs(layerA, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Removes invalid polygons, i.e. polygons with less than three vertices,
-# and merges polygons belonging spatially together, i.e. forming outer and
-# inner rings. Inner rings are not preserved as separate polygon, but become
-# new part of the polygon forming the outer ring.
-# library: shapes_polygons  tool: 21
-# INPUTS
-#  outshape       [string] output polygons
-#  inshape        [string] input polygons
 def flatten_polygon_layer(outshape, inshape):
+    """
+    Removes invalid polygons, i.e. polygons with less than three vertices,
+    and merges polygons belonging spatially together, i.e. forming outer and
+    inner rings. Inner rings are not preserved as separate polygon, but become
+    new part of the polygon forming the outer ring.
+
+    library: shapes_polygons  tool: 21
+
+    INPUTS
+     outshape       [string] output polygons
+     inshape        [string] input polygons
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '21', '-INPUT', inshape,
            '-OUTPUT', outshape]
     # Run cmd
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # difference()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-#==============================================================================
+# ==============================================================================
 # Library: shapes_tools
-#==============================================================================
+# ==============================================================================
 
-# Merge vector layers in a shapefile
-# library: shapes_tools  tool: 2
-# INPUTS
-#  outshape       [string] output shapefile
-#  shape_list     [list] list of shapefiles that will be merge
-#  addsource      [boolean] if addsource is True, a field with the
-#                  name of the merged layers is added
-#  match          [boolean] match fields by name
+
 def merge_layers(outshape, shape_list, addsource=False, match=True):
+    """
+    Merge vector layers in a shapefile
+
+    library: shapes_tools  tool: 2
+
+    INPUTS
+     outshape       [string] output shapefile
+     shape_list     [list] list of shapefiles that will be merge
+     addsource      [boolean] if addsource is True, a field with the
+                     name of the merged layers is added
+     match          [boolean] match fields by name
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
-    shape_list = [_files.default_file_ext(name, 'vector') for name in shape_list]
+    outshape = _validation.output_file(outshape, 'vector')
+    shape_list = _validation.input_file(shape_list, 'vector', True)
     # convert to text
     slist = ';'.join(shape_list)
     addsource = str(int(addsource))
@@ -1458,24 +1587,29 @@ def merge_layers(outshape, shape_list, addsource=False, match=True):
            outshape, '-SRCINFO', addsource, '-MATCH', match]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=shape_list[0]);
-    return(flag)  # merge_layers()
+    _validation.validate_crs(shape_list, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Select shapes by attributes and save them in a new shape file
-# library: shapes_tools  tool: 3, 6
-# INPUTS
-#  saveas        [string] output selected features shapefile
-#  inshape       [string] input shape file
-#  expression    [string, pandas.core.serie] expression parameter can be a
-#                 conditional string compatible with pandas, as example
-#                 expression='(field_X > 100) and (field_Y <=200) '
-#                 expression also can be a pandas serie with bool data type
 def select_by_attributes(saveas, inshape, expression):
+    """
+    Select shapes by attributes and save them in a new shape file
+
+    library: shapes_tools  tool: 3, 6
+
+    INPUTS
+     saveas        [string] output selected features shapefile
+     inshape       [string] input shape file
+     expression    [string, pandas Serie] expression parameter can be a
+                    conditional string compatible with pandas, as example
+                    expression='(field_X > 100) and (field_Y <=200) '
+                    expression also can be a pandas serie with bool data type
+    """
     # Check inputs
-    saveas = _files.default_file_ext(saveas, 'vector')
-    inshape = _files.default_file_ext(inshape, 'vector')
+    saveas = _validation.output_file(saveas, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Get expression
     table = _tables.get_attribute_table(inshape)  # get attribute table
     if type(expression) in (_Frame, _Serie):
@@ -1507,29 +1641,34 @@ def select_by_attributes(saveas, inshape, expression):
     _os.remove(filename)
     _tables.delete_fields(inshape, inshape, fields='COND')
     # Check if output grid has crs file
-    if not _files.has_crs_file(saveas):  # set first input layer crs
-        _projection.set_crs(shapes=saveas, crs_method=1, proj=inshape);
-    return(flag)  # select_by_attributes()
+    _validation.validate_crs(inshape, [saveas])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Select shapes by location and save them in a new shape file
-# library: shapes_tools  tool: 5, 6
-# INPUTS
-#  saveas        [string] output selected features shapefile
-#  inshape       [string] input shape file with shapes to select
-#  locations     [string] input shape file with areas to select features from
-#                 inshape parameter
-#  intersect     [bool] select from intersect
-#  within        [bool] are completely within
-#  contain       [bool] completely contain
-#  centroid_in   [bool] have their centroid in locations shapes
-#  centroid_of   [bool] contain the centeroid of locations shapes
 def select_by_location(saveas, inshape, locations, intersect=False,
                        within=False, contain=False, centroid_in=False,
                        centroid_of=False):
+    """
+    Select shapes by location and save them in a new shape file
+
+    library: shapes_tools  tool: 5, 6
+
+    INPUTS
+     saveas        [string] output selected features shapefile
+     inshape       [string] input shape file with shapes to select
+     locations     [string] input shape file with areas to select features from
+                    inshape parameter
+     intersect     [bool] select from intersect
+     within        [bool] are completely within
+     contain       [bool] completely contain
+     centroid_in   [bool] have their centroid in locations shapes
+     centroid_of   [bool] contain the centeroid of locations shapes
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
-    saveas = _files.default_file_ext(saveas, 'vector')
+    saveas = _validation.output_file(saveas, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Create batch file
     t = ''
     if intersect:  # intersect
@@ -1568,39 +1707,48 @@ def select_by_location(saveas, inshape, locations, intersect=False,
     # Check if output grid has crs file
     if not _files.has_crs_file(saveas):  # set first input layer crs
         _projection.set_crs(shapes=saveas, crs_method=1, proj=inshape);
-    return(flag)  # copy_shapes_by_location()
+    _validation.validate_crs(inshape, [saveas])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Create a shape graticule
-# library: shapes_tools  tool: 13
-# INPUTS
-#  outshape       [string] output graticule shapefile
-#  layer          [string] optional shapefile. If layer is not None,
-#                  graticule is created using the layer extent. Output
-#                  graticule takes the layer's crs
-#  gtype          [int] type of graticule shapes
-#                  [0] Lines
-#                  [1] Rectangles
-#  dx, dy         [float] graticule division width
-#  extent         [list, tuple, array] graticule extent in the case that
-#                  parameter layer is None. extent must be a 4 element object
-#                  [xmin, xmax, ymin, ymax]
-#  align          [int] cells alignment
-#                  [0] bottom-left
-#                  [1] top-left
-#                  [2] bottom-right
-#                  [3] top-right
-#                  [4] centered
-#  proj           [string] optional proj4 parameters. Only if layer is None
-#  proj_file      [string] copy the .proj file of a layer. Only if layer is None
 def create_graticule(outshape, layer=None, gtype=1, dx=10, dy=10,
-                     extent=[-180, 180, -90, 90], align=0, proj=None, proj_file=None):
+                     extent=None, align=0, proj=None, proj_file=None):
+    """
+    Create a shape graticule using a layer extension or a defined extension
+
+    library: shapes_tools  tool: 13
+
+    INPUTS
+     outshape       [string] output graticule shapefile
+     layer          [string] optional shapefile. If layer is not None,
+                     graticule is created using the layer extent. Output
+                     graticule takes the layer's crs
+     gtype          [int] type of graticule shapes
+                     [0] Lines
+                     [1] Rectangles
+     dx, dy         [float] graticule division width
+     extent         [list, tuple, array] graticule extent in the case that
+                     parameter layer is None. extent must be a 4 element object
+                     [xmin, xmax, ymin, ymax]
+     align          [int] cells alignment
+                     [0] bottom-left
+                     [1] top-left
+                     [2] bottom-right
+                     [3] top-right
+                     [4] centered
+     proj           [string] optional proj4 parameters. Only if layer is None
+     proj_file      [string] copy the .proj file of a layer. Only if layer is None
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    if extent is None:
+        extent = [-120, -80, 14, 32]
     if layer is None:
         layer = 'NULL'
     else:
-        layer = _files.default_file_ext(layer, 'vector')
+        layer = _validation.input_file(layer, 'vector', True)
     if gtype < 0 or gtype > 1:
         gtype = 1
     if len(extent) != 4:
@@ -1623,40 +1771,41 @@ def create_graticule(outshape, layer=None, gtype=1, dx=10, dy=10,
     elif proj is not None:
         _projection.set_crs(shapes=outshape, crs_method=0, proj=proj);
     elif proj_file is not None:
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=proj_file);
-    return(flag)  # create_graticule()
+        _validation.validate_crs(proj_file, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Creates a new shapefile using the location of the shapes
-# library: shapes_tools  tool: 13
-# INPUTS
-#  outshape       [string] output shapefile
-#  inshape        [string] input shape to be selected
-#  extent_shape   [string] shapefile for the selection of shapes in inshapes parameter
-#  condition      [int] conditional used by shapes selection
-#                  [0] completely contained
-#                  [1] intersects
-#                  [2] center
-#  extent         [int] use extent_shape parameter as:
-#                  [0] shapes layer extent (default)
-#                  [1] polygons
-#  overlap        [float] minimum overlapping area as percentage of the total
-#                  size of the input shape. Applies only if extent=1.
-#                  For old versions of SAGA this parameter is ignored.
 def copy_shapes_by_location(outshape, inshape, extent_shape, condition=0,
                             extent=0, overlap=50):
+    """
+    Creates a new shapefile using the location of the shapes
+
+    library: shapes_tools  tool: 13
+
+    INPUTS
+     outshape       [string] output shapefile
+     inshape        [string] input shape to be selected
+     extent_shape   [string] shapefile to select the inshape geometries
+     condition      [int] conditional used by shapes selection
+                     [0] completely contained
+                     [1] intersects
+                     [2] center
+     extent         [int] use extent_shape parameter as:
+                     [0] shapes layer extent (default)
+                     [1] polygons
+     overlap        [float] minimum overlapping area as percentage of the total
+                     size of the input shape. Applies only if extent=1.
+                     For old versions of SAGA this parameter is ignored.
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
-    inshape = _files.default_file_ext(inshape, 'vector')
-    extent_shape = _files.default_file_ext(extent_shape, 'vector')
-    if condition < 0 or condition > 2:
-        condition = 0  # default method
-    extent += 2
-    if extent < 2 or extent > 3:
-        extent = 2  # default method
-    # convert to string
-    condition = str(condition)
-    extent = str(extent)
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
+    extent_shape = _validation.input_file(extent_shape, 'vector', True)
+    # Check parameters
+    condition = _validation.input_parameter(condition, 0, vrange=[0, 2], dtypes=[int])
+    extent = _validation.input_parameter(extent + 2, 2, vrange=[2, 4], dtypes=[int])
     overlap = str(overlap)
     # Create cmd
     if _env.saga_version[0] in ['2']:  # method for old versions of SAGA
@@ -1671,21 +1820,27 @@ def copy_shapes_by_location(outshape, inshape, extent_shape, condition=0,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # copy_shapes_by_location()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Split shapes using a field in attribute table
-# library: shapes_tools  tool: 17
-# INPUTS:
-#  outshape  [string] output shape file. Automatic name extension is generated
-#             for each unique value in field attribute
-#  inshape   [string] input shape file name
-#  field     [int,string] attribute id number or name of inshape parameter
 def split_shapes_by_attribute(outshape, inshape, field=0):
+    """
+    Split shapes using a field in attribute table
+
+    library: shapes_tools  tool: 17
+
+    INPUTS:
+     outshape  [string] output shape file. Automatic name extension is generated
+                for each unique value in field attribute
+     inshape   [string] input shape file name
+     field     [int,string] attribute id number or name of inshape parameter
+    """
     # Check inputs
-    inshape = _files.default_file_ext(inshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     # Get atribute table
     table = _tables.get_attribute_table(inshape)
     if type(field) is int:
@@ -1703,33 +1858,38 @@ def split_shapes_by_attribute(outshape, inshape, field=0):
            '-TABLE', inshape, '-FIELD', str(field)]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # split_shapes_by_attribute()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Vector based buffer construction
-# library: shapes_tools  tool: 18
-# INPUTS
-#  outshape    [string] output buffer shape
-#  inshape     [string] output shapefile
-#  dist        [int, float] define a single buffer distance for all features
-#  field       [int, string] if field is None, dist parameter is used
-#               If field is the index or name of the column in the attribute
-#               table to use as a dist parameter for each feature
-#  scale       [float] if field parameter is not None, scale is a factor
-#               that multiplies the value of the attribute table
-#  dissolve    [boolean] if dissolve is False (default) and nzones=1, then
-#               buffer layer is storage for each feature. If dissolve
-#               is True, a single buffer shape is created
-#  nzones      [int] number of buffer zones
-#  inner       [boolean] applies a inner buffer (only for polygons)
-#  darc        [float] arc vertex distance [Degree]
-def shapes_buffer(outshape, inshape, dist=100, field=None,
-                  scale=1.0, dissolve=False, nzones=1, inner=False, darc=5.0):
+def shapes_buffer(outshape, inshape, dist=100, field=None, scale=1.0,
+                  dissolve=False, nzones=1, inner=False, darc=5.0):
+    """
+    Vector based buffer construction
+
+    library: shapes_tools  tool: 18
+
+    INPUTS
+     outshape    [string] output buffer shape
+     inshape     [string] output shapefile
+     dist        [int, float] define a single buffer distance for all features
+     field       [int, string] if field is None, dist parameter is used
+                  If field is the index or name of the column in the attribute
+                  table to use as a dist parameter for each feature
+     scale       [float] if field parameter is not None, scale is a factor
+                  that multiplies the value of the attribute table
+     dissolve    [boolean] if dissolve is False (default) and nzones=1, then
+                  buffer layer is storage for each feature. If dissolve
+                  is True, a single buffer shape is created
+     nzones      [int] number of buffer zones
+     inner       [boolean] applies a inner buffer (only for polygons)
+     darc        [float] arc vertex distance [Degree]
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
-    inshape = _files.default_file_ext(inshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+    inshape = _validation.input_file(inshape, 'vector', True)
     if nzones < 1:
         nzones = 1  # minimum value
     # convert to strings
@@ -1751,25 +1911,31 @@ def shapes_buffer(outshape, inshape, dist=100, field=None,
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    if not _files.has_crs_file(outshape):  # set first input layer crs
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=inshape);
-    return(flag)  # shapes_buffer()
+    _validation.validate_crs(inshape, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 
-# Convert a delimited text file (.txt or .csv) to a point shape file
-# library: shapes_tools  tool: 22
-# INPUTS
-#  outshape    [string] output pints shape file
-#  intable     [string] input delimited table .txt (tabulated) or .csv
-#  field_id    [int, string] column number or name of feature ID
-#  field_x     [int, string] column number or name of X coordinate
-#  field_y     [int, string] column number or name of Y coordinate
-#  proj        [string] proj parameter text. See set_crs() method
-#  proj_file   [string] .prj file with projection information
 def generate_shapes_from_table(outshape, intable, field_id=0, field_x=1,
                                field_y=2, proj=None, proj_file=None):
+    """
+    Convert a delimited text file (.txt or .csv) to a point shape file
+
+    library: shapes_tools  tool: 22
+
+    INPUTS
+     outshape    [string] output pints shape file
+     intable     [string] input delimited table .txt (tabulated) or .csv
+     field_id    [int, string] column number or name of feature ID
+     field_x     [int, string] column number or name of X coordinate
+     field_y     [int, string] column number or name of Y coordinate
+     proj        [string] proj parameter text. See set_crs() method
+     proj_file   [string] .prj file with projection information
+    """
     # Check inputs
-    outshape = _files.default_file_ext(outshape, 'vector')
+    outshape = _validation.output_file(outshape, 'vector')
+
     # convert to string
     field_id = str(field_id)
     field_x = str(field_x)
@@ -1784,5 +1950,8 @@ def generate_shapes_from_table(outshape, intable, field_id=0, field_x=1,
     if proj is not None:  # set first input layer crs
         _projection.set_crs(grids=outshape, crs_method=0, proj=proj);
     elif proj_file is not None:
-        _projection.set_crs(shapes=outshape, crs_method=1, proj=proj_file);
-    return(flag)  # convert_table_to_points()
+        _validation.validate_crs(proj_file, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
