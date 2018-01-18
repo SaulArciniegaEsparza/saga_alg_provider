@@ -31,6 +31,7 @@ tools.terrain_analysis._env = environment
 # Set GridObj
 tools.grids._io = data_manager.grids
 tools.import_export._io = data_manager.grids
+tools.shapes._io = data_manager.grids
 
 user_tools.hydrology._io = data_manager.grids
 user_tools.methods._io = data_manager.grids
@@ -40,6 +41,7 @@ tools.climate._files = utilities.files
 tools.grids._files = utilities.files
 tools.import_export._files = utilities.files
 tools.projection._files = utilities.files
+tools.shapes._files = utilities.files
 tools.tables._files = utilities.files
 tools.terrain_analysis._files = utilities.files
 
@@ -50,5 +52,6 @@ tools.climate._validation = utilities.data_validation
 tools.grids._validation = utilities.data_validation
 tools.import_export._validation = utilities.data_validation
 tools.projection._validation = utilities.data_validation
+tools.shapes._validation = utilities.data_validation
 tools.tables._validation = utilities.data_validation
 tools.terrain_analysis._validation = utilities.data_validation

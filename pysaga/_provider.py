@@ -21,7 +21,7 @@ class SAGAEnvironment:
         """
 
         # Define attributes
-        self.ovwlog = False     # overwritten log files
+        self.ovwlog = True     # overwritten log files
         self.saga_version = ''  # saga version
         self.stdlog = ''        # register log file
         self.errlog = ''        # error log file
@@ -88,6 +88,18 @@ class SAGAEnvironment:
                 os.makedirs(workdir)  # create dir
             self.stdlog = os.path.join(workdir, "processing.log")
             self.errlog = os.path.join(workdir, "processing.error.log")
+
+    def options(self, ovwlog=None):
+        """
+        Change SAGA algorithm provider environment options
+
+        INPUTS:
+           ovwlog       [bool] if True, saga outputs warning and messages are added to the
+                          log and error files, In other case, these files are overwritten.
+                          By default, no changes are made.
+        """
+        if type(ovwlog) is bool:
+            self.ovwlog = ovwlog
 
     def print_commands(self, library=None, tool=None):
         """

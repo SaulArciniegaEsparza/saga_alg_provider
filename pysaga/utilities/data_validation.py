@@ -164,12 +164,13 @@ def validate_crs(source, files):
             files = [files]
         if type(files) in (list, tuple):
             for filename in files:
-                if not _files.has_crs_file(filename):
-                    new_proj = _files.default_file_ext(filename, 'prj', True)
-                    try:  # copy prj file
-                        _shutil.copy(source_crs, new_proj)
-                    except:  # maybe the input is the same that output
-                        pass
+                if type(filename) is str:
+                    if not _files.has_crs_file(filename):
+                        new_proj = _files.default_file_ext(filename, 'prj', True)
+                        try:  # copy prj file
+                            _shutil.copy(source_crs, new_proj)
+                        except:  # maybe the input is the same that output
+                            pass
     # End Function
 
 

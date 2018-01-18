@@ -9,14 +9,12 @@ Institute of Engineering of UNAM
 Mexico City
 """
 
-# Import modules
 # env is the provider class
 import os as _os
 from copy import deepcopy as _deepcopy
 import shapefile as _shp
 import numpy as _np
 
-import projection as _projection
 import tables as _tables
 import shapes as _shapes
 import grids as _grids
@@ -90,7 +88,9 @@ def channel_network(dem, flowdir=None, init_grid=None, channels=None,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [channels, gridchannels, gridchandir])
-    return(flag)  # channel_network()
+    if not flag:
+        raise EnvironmentError(('Error running "channel_network()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
@@ -126,7 +126,9 @@ def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outgrid])
-    return(flag)  # watershed_basins()
+    if not flag:
+        raise EnvironmentError(('Error running "watershed_basins()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 # ==============================================================================
@@ -186,7 +188,9 @@ def flow_accumulation(outgrid, dem, method=0, unit=0, sinkroute=None,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outgrid])
-    return(flag)  # flow_accumulation()
+    if not flag:
+        raise EnvironmentError(('Error running "flow_accumulation()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def upslope_area(output, points, dem, sinkroute=None, field=None,
@@ -235,7 +239,7 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
     if type(points) in [list, tuple, _np.ndarray]:  # points is a list of a point
         points = _np.array(points, dtype=_np.float32)
         if points.ndim == 1 and points.size == 2:
-            output = _files.default_file_ext(output, 'grid')
+            output = _validation.output_file(output, 'grid')
             x, y = str(points[0]), str(points[1])
             # run command
             cmd.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
@@ -288,7 +292,9 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
 
     # Check if output grid has crs file
     _validation.validate_crs(dem, [output])
-    return(flag)  # upslope_area()
+    if not flag:
+        raise EnvironmentError(('Error running "upslope_area()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 # ==============================================================================
@@ -345,7 +351,9 @@ def analytical_hillshading(outgrid, dem, method=0, azimuth=315, declination=45,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outgrid])
-    return(flag)  # analytical_hillshading()
+    if not flag:
+        raise EnvironmentError(('Error running "analytical_hillshading()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 # ==============================================================================
@@ -396,7 +404,9 @@ def dem_slope_aspect(dem, outslope, outaspect, method=6, sunits=0, aunits=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outslope, outaspect])
-    return(flag)  # dem_slope_aspect()
+    if not flag:
+        raise EnvironmentError(('Error running "dem_slope_aspect()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 # ==============================================================================
@@ -433,8 +443,9 @@ def sink_drainage_route_detection(outgrid, dem, threshold=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outgrid])
-    return(flag)  # sink_drainage_route_detection()
-
+    if not flag:
+        raise EnvironmentError(('Error running "sink_drainage_route_detection()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def sink_removal(outdem, dem, sinkroute=None, method=0, threshold=0):
@@ -477,7 +488,9 @@ def sink_removal(outdem, dem, sinkroute=None, method=0, threshold=0):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outdem])
-    return(flag)  # sink_removal()
+    if not flag:
+        raise EnvironmentError(('Error running "sink_removal()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def fill_sinks_wangliu(dem, outdem=None, outflowdir=None, outwshed=None,
@@ -523,7 +536,9 @@ def fill_sinks_wangliu(dem, outdem=None, outflowdir=None, outwshed=None,
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outdem, outflowdir, outwshed])
-    return(flag)  # fill_sinks_wangliu()
+    if not flag:
+        raise EnvironmentError(('Error running "fill_sinks_wangliu()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def fill_sinks_wangliuXXL(outdem, dem, minslope=0.1):
@@ -551,7 +566,9 @@ def fill_sinks_wangliuXXL(outdem, dem, minslope=0.1):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outdem])
-    return(flag)  # fill_sinks_wangliuXXL()
+    if not flag:
+        raise EnvironmentError(('Error running "fill_sinks_wangliuXXL()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def burn_stream_network_into_dem(outdem, dem, streams, flowdir=None,
@@ -610,7 +627,9 @@ def burn_stream_network_into_dem(outdem, dem, streams, flowdir=None,
         _files.delete_files(streams)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outdem])
-    return(flag)  # burn_stream_network_into_dem()
+    if not flag:
+        raise EnvironmentError(('Error running "burn_stream_network_into_dem()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
 
 def dem_carve(outgrid, ingrid, inlines, width=10, depth=1):
@@ -649,5 +668,7 @@ def dem_carve(outgrid, ingrid, inlines, width=10, depth=1):
                              formula='g1 - g2 * {}'.format(depth))
     # Delete auxiliar files
     _files.delete_files([auxshape, auxgrid])
-    return(flag)  # dem_carve()
+    if not flag:
+        raise EnvironmentError(('Error running "dem_carve()",'
+                                ' please check the error file: {}').format(_env.errlog))
 
