@@ -15,22 +15,26 @@ from scipy.sparse import lil_matrix as _lil_matrix
 from scipy.sparse import eye as _eye
 
 
-#==============================================================================
+# ==============================================================================
 # Flow direction solver methods
-#==============================================================================
+# ==============================================================================
 
-# Get next cell in flow direction matrix
-# INPUTS
-#  flowdir       [np.ndarray, GridObj] flow direction array or GridObj
-#  pixels        [list, tuple, np.ndarray] pixel row and col array [row, col]
-#                 for multiple pixels use [[row1, col1], [row2, col2],...]
-#                If pixels is None, all pixels in data are used
-# OUTPUTS
-#  Ind           [np.ndarray] index of actual pixel
-#  Indc          [np.ndarray] index of next pixel considering flow direction
-#                 If flow direction is not in 0 <= flowdir <= 7 then
-#                 cell is considered as a output flow cell with Indc == Ind
+
 def cell_direction(flowdir, pixels=None):
+    """
+    Get next cell in flow direction matrix
+
+    INPUTS
+     flowdir       [np.ndarray, GridObj] flow direction array or GridObj
+     pixels        [list, tuple, np.ndarray] pixel row and col array [row, col]
+                    for multiple pixels use [[row1, col1], [row2, col2],...]
+                   If pixels is None, all pixels in data are used
+    OUTPUTS
+     Ind           [np.ndarray] index of actual pixel
+     Indc          [np.ndarray] index of next pixel considering flow direction
+                    If flow direction is not in 0 <= flowdir <= 7 then
+                    cell is considered as a output flow cell with Indc == Ind
+    """
     # Check inputs
     if type(flowdir) is _io.GridObj:
         flowdir = flowdir.get_data()

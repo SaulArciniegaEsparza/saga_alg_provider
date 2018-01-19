@@ -80,6 +80,7 @@ tools.tables._validation = utilities.data_validation
 tools.terrain_analysis._validation = utilities.data_validation
 
 user_tools.hydrology._validation = utilities.data_validation
+data_manager.grids._validation = utilities.data_validation
 
 # Set projection methods
 data_manager.grids._files = utilities.files

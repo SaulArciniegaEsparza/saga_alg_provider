@@ -30,6 +30,27 @@ except:
 # Main class
 class GridObj(object):
     def __init__(self, filename=None):
+        """
+        Create a Grid Object to work as a virtual raster
+        When a file is input, the raster is read as a gdal
+
+        ATTRIBUTES:
+            filename       [string] file name associated to the data.
+                             If None, the GridObj is a virtual raster
+            drivername     [string] gdal driver short name for rasters
+            geotransform   [list] geo transformation elements
+                             [xoff, xsize, rtnx, yoff, rtny, ysize]
+                             where xoff and yoff are the coordinates of the
+                             upper-left corner, xsize and y ysize are the pixel
+                             size, and rtnx and rtny are the rotation
+            projectionref  [string] reference projection as WKt text
+            xsize          [int] number of columns
+            ysize          [int] number of rows
+            bands          [int] number of raster bands
+            driver         [gdal.Dataset] gdal raster class, that can be used
+                            for access to raster properties
+        """
+
         self._reset_attributes()
 
         if filename is not None:
@@ -44,6 +65,9 @@ class GridObj(object):
         yield 'xsize', self.xsize
         yield 'ysize', self.ysize
         yield 'bands', self.bands
+
+    def __getitem__(self, key):
+        return(self.__dict__.get(key, None))
 
     # Text special function
     def __str__(self):
@@ -70,6 +94,7 @@ class GridObj(object):
     def read_file(self, filename):
         """
         Connection with a raster file using gdal driver
+
         INPUTS:
           filename      [string] valid raster file compatible with gdal
         """
@@ -80,7 +105,7 @@ class GridObj(object):
         # Read raster with gdal
         raster = _gdal.Open(filename, _gdal.GA_Update)
         if raster is None:
-            raise IOError('{} can not be readed as a raster'.format(filename))
+            raise IOError('{} can not be read!'.format(filename))
 
         # save properties
         self.driver = raster  # gdal dataset
@@ -92,7 +117,8 @@ class GridObj(object):
 
     def close(self):
         """
-        Raster file disconnection. It's necessary for avoid conflicts with data
+        Close connection with actual raster file. It must be done for
+        avoid conflicts with raster file
         """
         if type(self.driver) is _gdal.Dataset:
             self._reset_attributes()
@@ -122,12 +148,16 @@ class GridObj(object):
                  'bands': bands}
         return(rinfo)  # grid_info()
 
-    def get_coordinates(self, extent=None, index=False, center=True):
+    def get_coordinates(self, extent=None, asindex=False, center=True):
         """
-        Get grid coordinates of whole data or from a selected extent
+        Gets grid coordinates as arrays of whole data or from a selected extension
+
         INPUTS
-         extent    [list, tuple, np.ndarray] extension [xmin, xmax, ymin, ymax]
-         index     [bool] if True, extension is used as [row_min, row_max, col_min, col_max]
+         extent    [list, tuple, np.ndarray] optional extension [xmin, xmax, ymin, ymax]
+         asindex   [bool] if True, extension is used as [xoff, cols, yoff, rows] where
+                    the xoff and yoff are the indexes of the upper left pixel, and
+                    rows and cols are the number of cells that will be considered
+                    moving to the down-right direction
          center    [bool] if True, centered pixel coordinates are returned, in other case
                     upper left corner is returned
         OUTPUT
@@ -153,58 +183,66 @@ class GridObj(object):
         if extent is None:
             cols, rows = _np.meshgrid(_np.arange(self.xsize),
                                       _np.arange(self.ysize))
-            X, Y = get_coors_matrix(rows, cols)  # get coordinates
+            x, y = get_coors_matrix(rows, cols)  # get coordinates
+            return(x, y)
 
         elif type(extent) in [list, tuple, _np.ndarray]:  # use extent
-            if not index:  # use coordinates
+            if len(extent) != 4:
+                raise TypeError('extent must be a 4-elements array!')
+
+            if asindex:  # use [xoff, cols, yoff, rows]
+                cid = _np.array([extent[0], sum(extent[:2]) + 1],
+                                dtype=int)
+                rid = _np.array([extent[2], sum(extent[2:]) + 1],
+                                dtype=int)
+            else:
                 # convert extent to rows and cols
                 points = [[extent[0], extent[2]],
                           [extent[1], extent[3]]]
                 pixels = self.coor2pixel(points)
                 # convert pixel to extent
-                extent = pixels[[0, 1, 0, 1], [0, 0, 1, 1]]
+                rid, cid = pixels[:, 0], pixels[:, 1]
 
-            # Check extent
-            extent = [min(extent[:2]), max(extent[:2]),
-                      min(extent[2:]), max(extent[2:])]
-
-            assert 0 <= extent[0] < extent[1]
-            assert extent[0] < extent[1] <= self.ysize
-            assert 0 <= extent[2] < extent[3]
-            assert extent[2] < extent[3] <= self.xsize
             # Get pixel indexes
-            cols, rows = _np.meshgrid(_np.arange(extent[2], extent[3] + 1, dtype=int),
-                                      _np.arange(extent[0], extent[1] + 1, dtype=int))
-            X, Y = get_coors_matrix(rows, cols)  # get coordinates
-        return(X, Y)  # get_grid_coordinates()
+            cols, rows = _np.meshgrid(_np.arange(cid.min(),
+                                                 cid.max() + 1,
+                                                 dtype=int),
+                                      _np.arange(rid.min(),
+                                                 rid.min() + 1,
+                                                 dtype=int))
+            # Get coordinates
+            x, y = get_coors_matrix(rows, cols)
+            return(x, y)  # get_grid_coordinates()
 
     def get_extent(self, center=True):
         """
-        Get raster extent
+        Gets the raster extent as [xmin, xmax, ymin, ymax]
+        INPUTS
+          center    [bool] if True, pixel centroids are used, in other case
+                     upper left corner is used. By default True
         OUTPUTS
-         extent    [np.ndarray] extent as [xmin, xmax, ymin, ymax]
-         center    [bool] if True, centered pixels coordinates are used,
-                    in other case upper left corner is used
+         extent     [np.ndarray] extent
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get extent
-        cols = _np.array([0, self.xsize])
-        rows = _np.array([0, self.ysize])
-        gt = _deepcopy(self.geotransform)  # get geotransform
+        cols = _np.array([0., self.xsize - 1.])
+        rows = _np.array([0., self.ysize - 1.])
+        gt = self.geotransform  # get geotransform
         # get coordinates
-        X = gt[0] + cols * gt[1] + rows * gt[2]
-        Y = gt[3] + cols * gt[4] + rows * gt[5]
+        x = gt[0] + cols * gt[1] + rows * gt[2]
+        y = gt[3] + cols * gt[4] + rows * gt[5]
         if center:
-            X += gt[1] / 2.0
-            Y += gt[5] / 2.0
+            x += gt[1] / 2.0
+            y += gt[5] / 2.0
         # Output extent
-        extent = _np.array([X.min(), X.max(), Y.min(), Y.max()])
+        extent = _np.array([x.min(), x.max(), y.min(), y.max()])
         return(extent)  # get_extent()
 
     def get_resolution(self):
         """
-        Return pixel width and height (as absolute values)
+        Returns pixel width and height (as absolute values)
+
         OUTPUTS
          width, height    [float] pixel size
         """
@@ -217,7 +255,8 @@ class GridObj(object):
 
     def get_origin(self):
         """
-        Return raster origin (upper left corner)
+        Returns raster upper-left corner coordinates
+
         OUTPUT
          origin     [np.ndarray] [x_left, y_upper] array
         """
@@ -231,6 +270,7 @@ class GridObj(object):
     def get_nodata(self, bands=1):
         """
         Get no data values from selected bands
+
         INPUTS
          bands     [int, list] band number or list of band numbers
         OUTPUTS
@@ -251,7 +291,10 @@ class GridObj(object):
         data = []
         for i in range(len(bands)):
             band_data = self.driver.GetRasterBand(i + 1)
-            data.append(band_data.GetNoDataValue())
+            if band_data is None:
+                data.append(None)
+            else:
+                data.append(band_data.GetNoDataValue())
             band_data = None
         # Output data
         if len(data) == 1:
@@ -260,12 +303,17 @@ class GridObj(object):
             nodata = _np.array(data)
         return(nodata)  # get_nodata()
 
-    def pixel2coor(self, pixels, center=True):
+    def pixel2coor(self, pixels, center=True, remove=False):
         """
-        Extract coordinates given pixels row and col
+        Extract coordinates x,y given the pixels rows and cols indexes
+
         INPUTS
          pixels     [list, tuple, np.ndarray] array with [row, col] indexes.
                       For multiple pixels use [[row1, col1], [row2, col2],...]
+        center      [bool] if center is True, pixel centroid is input as pixels,
+                      in other case, upper-left corner is used
+        remove      [bool] if True, pixels out of the raster size are ignored
+                     In other case, pixels are forced to no exceed the xsize and ysize
         OUTPUT
          coors      [np.ndarray] output coordinate arrays [[x1, y1], [x2, y2]]
 
@@ -285,14 +333,21 @@ class GridObj(object):
         else:
             raise TypeError('Wrong pixels parameter type {}'.
                             format(str(type(pixels))))
-        # Check errors
-        assert 0 <= pixels[:, 0].min(), "rows can't be lower than 0"
-        assert pixels[:, 0].max() < self.ysize - 1, "rows can't be higher than ysize-1"
-        assert 0 <= pixels[:, 1].min(), "cols can't be lower than 0"
-        assert pixels[:, 1].max() < self.xsize, "cols can't be higher than xsize-1"
 
         # Get coordinates
         rows, cols = pixels[:, 0], pixels[:, 1]
+        if remove:
+            pos = _np.where((rows < 0) | (rows > (self.ysize - 1)) |
+                            (cols < 0) | (cols > (self.xsize - 1)))[0]
+            rows = _np.delete(rows, pos)
+            cols = _np.delete(cols, pos)
+            print('Some points where deleted because their were found out of raster size!')
+        else:
+            rows[rows < 0] = 0
+            rows[rows > (self.ysize - 1)] = self.ysize - 1
+            rows[cols < 0] = 0
+            rows[cols > (self.xsize - 1)] = self.xsize - 1
+
         gt = self.geotransform  # get geotransform
         x = gt[0] + cols * gt[1] + rows * gt[2]
         y = gt[3] + cols * gt[4] + rows * gt[5]
@@ -303,13 +358,18 @@ class GridObj(object):
         coors = _np.hstack((x.reshape((len(x), 1)), y.reshape(len(y), 1)))
         return(coors)  # pixel2coor()
 
-    def coor2pixel(self, points):
+    def coor2pixel(self, points, center=True, remove=False):
         """
-        Convert coordinates from a pixel to row and col
+        Convert coordinates X,Y from a pixel to row and col indexes
+
         INPUTS
          points      [list, tuple, np.ndarray] [x, y] coordinates.
                       For multiple points use [[x1, y1], [x2, y2], ...]
-        OUPUTS
+         center      [bool] if True, input points corresponds to the pixel centroid
+                      In other case, points corresponds to the upper-left corner
+         remove      [bool] if True, pixels out of the raster size are ignored
+                      In other case, pixels are forced to no exceed the xsize and ysize
+        OUTPUTS
          pixels   [np.ndarray] rows and cols of coordinates [[row1, col1], [row2, col2]]
 
          NOTE: note that input is x, y and the output is row, col
@@ -319,7 +379,10 @@ class GridObj(object):
 
         # Check pixels
         if type(points) in [list, tuple, _np.ndarray]:
-            points = _np.array(points, dtype=_np.int32)
+            if type(points) is _np.ndarray:
+                points = points.astype(_np.float32)
+            else:
+                points = _np.array(points, dtype=_np.float32)
             if points.ndim == 1 and points.shape[-1] == 2:
                 points = points.reshape(1, 2)
             elif points.ndim > 2 or points.shape[-1] != 2:
@@ -327,18 +390,28 @@ class GridObj(object):
         else:
             raise TypeError('Wrong points parameter type {}'.format(str(type(points))))
         # Get raster extent and geotransformation
-        gt = _deepcopy(self.geotransform)
-        extent = self.get_extent()  # extent
         origin = self.get_origin()  # raster origin
         width, height = self.get_resolution()  # resolution
-        # Check errors
-        assert extent[0] - width / 2.0 <= points[:, 0].min()
-        assert points[:, 0].max() <= extent[1] + width / 2.0
-        assert extent[2] - height / 2.0 <= points[:, 1].min()
-        assert points[:, 1].max() <= extent[3] + height / 2.0
         # Get rows and cols
+        if center:
+            points[:, 0] -= width / 2.0
+            points[:, 1] += height / 2.0
+
         cols = _np.array(_np.round((points[:, 0] - origin[0]) / width), dtype=int)
         rows = _np.array(_np.round((origin[1] - points[:, 1]) / height), dtype=int)
+
+        if remove:
+            pos = _np.where((rows < 0) | (rows > (self.ysize - 1)) |
+                            (cols < 0) | (cols > (self.xsize - 1)))[0]
+            rows = _np.delete(rows, pos)
+            cols = _np.delete(cols, pos)
+            print('Some points where deleted because their were found out of raster size!')
+        else:
+            rows[rows < 0] = 0
+            rows[rows > (self.ysize - 1)] = self.ysize - 1
+            cols[cols < 0] = 0
+            cols[cols > (self.xsize - 1)] = self.xsize - 1
+
         # Return pixels
         pixels = _np.array(zip(rows, cols), dtype=int)
         return(pixels)  # coor2pixel()
@@ -346,6 +419,7 @@ class GridObj(object):
     def get_pixel_value(self, pixels, bands=1, dtype=float):
         """
         Get pixel values using rows and cols
+
         INPUTS
          pixels    [list, tuple, np.ndarray] [row, col] pixel. For multiple pixels use
                     [[row1, col1], [row2, col2]]
@@ -376,7 +450,7 @@ class GridObj(object):
             if pixels.ndim == 1:
                 pixels = pixels.reshape((1, 2))
             elif pixels.ndim > 2:
-                raise TypeError('Bad pixels dimenssion {}'.format(str(pixels.ndim)))
+                raise TypeError('Bad pixels dimension {}'.format(str(pixels.ndim)))
         else:
             raise TypeError('Bad pixels type variable {}'.format(str(type(pixels))))
 
@@ -416,14 +490,17 @@ class GridObj(object):
             data.index.name = 'band'
         return(data)  # get_pixel_values()
 
-    def get_data(self, bands=1, extent=None, index=False, dtype=float):
+    def get_data(self, bands=1, extent=None, asindex=False, dtype=float):
         """
-        Get raster values from bands
+        Get raster values as arrays from one bands or multiple bands
+
         INPUTS
          bands     [int, list] band number or list of band numbers
          extent    [list] grid extent with cells number or coordinates [xmin, xmax, ymin, ymax]
-         index     [boolean] if index is True, extent uses row and col indexes as
-                             [row_min, row_max, col_min, col_max]
+         asindex   [bool] if True, extension is used as [xoff, cols, yoff, rows] where
+                    the xoff and yoff are the indexes of the upper left pixel, and
+                    rows and cols are the number of cells that will be considered
+                    moving to the down-right direction
          dtype     [type] data type. By default float
         OUTPUT
          data      [np.array] output numpy array. If bands is a list, output data is
@@ -451,51 +528,53 @@ class GridObj(object):
             if len(extent) != 4:
                 raise TypeError('Bad extent type {}!'.format(str(type(extent))))
 
-            if index:  # use extent as cell index
+            if asindex:  # use [xoff, cols, yoff, rows]
                 extent = _np.array(extent, dtype=int)
-                extent = [extent[2:].min(), extent[2:].max(),
-                          extent[:2].min(), extent[:2].max()]
                 xoff, xsize, yoff, ysize = extent
 
-            else:      # use extent as coordinates
+            else:       # use [xmin, xmax, ymin, ymax]
                 # convert extent to rows and cols
-                points = [[extent[0], extent[2]], [extent[1], extent[3]]]
+                points = [[extent[0], extent[2]],
+                          [extent[1], extent[3]]]
                 pixels = self.coor2pixel(points)
-                # convert pixel to extent
-                extent = [pixels[0, 1], pixels[1, 1],
-                          pixels[1, 0], pixels[0, 0]]
                 # Get a range of pixels
-                xoff = int(pixels[0, 1])
-                yoff = int(pixels[1, 0])
-                xsize = int(pixels[1, 1] - pixels[0, 1] + 1)
-                ysize = int(pixels[0, 0] - pixels[1, 0] + 1)
+                xoff = int(pixels[:, 1].min())
+                yoff = int(pixels[:, 0].min())
+                xsize = int(pixels[:, 1].max() - xoff + 1)
+                ysize = int(pixels[:, 0].max() - yoff + 1)
 
         else:
             raise TypeError('Bad extent type {}!'.format(str(type(extent))))
         # Get raster data
         bands = _np.unique(_np.sort(bands))
-        data = []
+        data = _np.full((max(bands), ysize, xsize), _np.nan, dtype=dtype)
+
+        print(xoff, yoff, xsize, ysize)
+
         for i in range(len(bands)):
             # verify raster band
             assert 1 <= bands[i] <= self.bands
             # get raster band
             band = self.driver.GetRasterBand(bands[i])
+            if band is None:  # band is empty
+                continue
             values = band.ReadAsArray(xoff, yoff, xsize, ysize).astype(dtype)
             nodata = band.GetNoDataValue()  # no data values
             values[values == nodata] = _np.nan  # change nan values
             # save data
-            data.append(values)
+            data[i, :, :] = values
         # Output array
-        if len(data) == 1:
-            data = data[0]
-        elif len(data) > 1:
-            data = _np.array(data, dtype=data[0].dtype)
-        return(data)  # get_data()
+        if len(bands) == 1:
+            return(data[0, :, :])
+        else:
+            return(data)
+        # get_data()
 
     def set_data(self, data, band=1, row=0, col=0):
         """
-        Change band values
+        Change band values given an array
         If GridObj is connected with a raster file, file is overwrited
+
         INPUTS
          data      [np.ndarray] data array
          band      [int] band number
@@ -508,14 +587,14 @@ class GridObj(object):
         row, col, band = int(row), int(col), int(band)
         if type(data) is not _np.ndarray:
             data = _np.array(data)
-        # check dimenssions
+        # check dimensions
         if data.ndims != 2:
             raise TypeError('Parameter data must be a bidimenssional numpy array.')
         # check extent
         nr, nc = data.shape
-        assert 1 <= band <= self.bands
-        assert 0 <= row <= self.ysize - nr
-        assert 0 <= col <= self.xsize - nc
+        assert 1 <= band <= self.bands, 'Wrong band number'
+        assert 0 <= row <= self.ysize - nr, 'row is out of the array dimension'
+        assert 0 <= col <= self.xsize - nc, 'col is out of the array dimension'
 
         # Write data in band
         band_data = self.driver.GetRasterBand(band)  # get band
@@ -529,6 +608,7 @@ class GridObj(object):
     def set_nodatavalue(self, nodata=-99999):
         """
         Change no data values for all bands
+
         INPUTS
          nodata     [int, float] new no data value
         """
@@ -538,6 +618,8 @@ class GridObj(object):
         # Change no data value of all bands
         for i in range(self.bands):
             band_data = self.driver.GetRasterBand(i + 1)  # get band
+            if band_data is None:
+                continue
             band_data.SetNoDataValue(nodata)  # change no data value
 
             # Try to flush data to disk
@@ -574,10 +656,8 @@ class GridObj(object):
         drivers = gdal_driver_list()  # get driver list
         if driver not in drivers:
             raise TypeError('Wrong driver name {}'.format(driver))
-        ext = '.' + drivers[driver]
-        if not filename.endswith(ext):
-            filename = _os.path.splitext(filename)[0]
-            filename += ext
+        ext = drivers[driver]
+        filename = _validation.output_file(filename, ext)
 
         # Create a copy
         dest = _gdal.GetDriverByName(driver)  # create driver
@@ -665,7 +745,7 @@ class GridObj(object):
 
         # Reproject image
         _gdal.ReprojectImage(self.driver, dest, self.projectionref,
-                            refobj.projectionref, method)
+                             refobj.projectionref, method)
 
         # Create new grid obj
         newobj = GridObj()  # create new grid object
@@ -686,6 +766,7 @@ class GridObj(object):
     def resample(self, cellsize=0, extent=None, ncols=0, nrows=0, resampling=3):
         """
         Resample raster and save in a virtual raster
+
         INPUTS
          cellsize      [int] new cellsize. If cellsize is 0, cellsize is ignored
          extent        [list, tuple, np.ndarray] new raster extent [xmin, xmax, ymin, ymax].
@@ -694,7 +775,7 @@ class GridObj(object):
                         If ncols or nrows is 0, then they are ignored
          resampling    [int] resampling method
                         [0] Nearest Neighbour
-                        [1] Averange
+                        [1] Average
                         [2] Bilinear
                         [3] Cubic (default)
                         [4] Cubic Spline
@@ -707,7 +788,7 @@ class GridObj(object):
         # Check inputs
         if type(extent) in [list, tuple, _np.ndarray]:
             if len(extent) != 4:
-                raise TypeError('Bad extent lenght {}'.format(len(extent)))
+                raise TypeError('Bad extent length {}'.format(len(extent)))
 
         # Default resampling methods
         methods = [
@@ -739,7 +820,7 @@ class GridObj(object):
             width = abs(extent[1] - extent[0]) / float(ncols)
             height = abs(extent[3] - extent[2]) / float(nrows)
 
-        # Create new geotrandform
+        # Create new geotransform
         gt = _deepcopy(self.geotransform)
         gt = list(gt)
         gt[0] = extent[0]  # left x
@@ -867,6 +948,7 @@ class GridObj(object):
 def gdal_driver_list():
     """
     Get _gdal drivers dictionary
+
     OUTPUT
      drivers    [dict] drivers and file extension
     """
@@ -878,24 +960,28 @@ def gdal_driver_list():
     return(drivers)  # gdal_driver_list()
 
 
-def create_virtualraster(data, geotransform=[0, 100, 0, 0, 0, -100],
-                        proj=4326, noval=-99999, dtype=float):
+def create_virtualraster(data, geotransform=None, proj=4326,
+                         noval=-99999, dtype=float):
     """
     Create virtual layer from a numpy array
+
     INPUTS
      data            [np.ndarray] input data. If data is a bi-dimensional array
                       only one band is created. For tree-dimensional array, number of bands
                       is extracted from the first dimension
      geotransform    [list, tuple, np.ndarray] geo transformation array
                       [x_left, width, x_rotation, y_upper, y_rotation, height]
-     proj            [int, str] projection reference. If proj is an integer
-                      takes as the EPSG code. If proj is a string is considering
-                      as a WKT projection
+                      If geotransform is None, default value is set as [0, 100, 0, 0, 0, -100]
+     proj            [int, str] projection reference. If proj is an integer, proj is
+                      used as EPSG code. If proj is string, WKT string projection is used
      noval           [int, float] no data value
-     dtype           [type] data type (int or float)
+     dtype           [type] data type (int, float, np.types)
     OUTPUTS
      gridobj         Memory GridObj
     """
+    # Check geotransform
+    if geotransform is None:
+        geotransform = [0, 100, 0, 0, 0, -100]
     # Get data type
     if dtype == float:
         dtype = _gdal.GDT_Float32
@@ -955,7 +1041,7 @@ def create_virtualraster(data, geotransform=[0, 100, 0, 0, 0, -100],
     return(gridobj)  # create_virtualraster()
 
 
-def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
+def array2raster(filename, data, geotransform=None,
                  proj=4326, noval=-99999, dtype=float, driver='SAGA'):
     """
     Create dataset from a numpy array
@@ -965,6 +1051,7 @@ def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
                       bands is equal to data.shape[0]
      geotransform    [list, tuple, np.ndarray] geo transform list
                       [origin_x, cellsize_x, rotation_x, origin_y, rotation_y, cellsize_y]
+                      If geotransform is None, default value is set as [0, 100, 0, 0, 0, -100]
      proj            [int, string] crs from epsg code or wellknown text
      noval           [int, float] no data values
      dtype           [int, float] define type of raster data: int or float
@@ -972,14 +1059,16 @@ def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
     """
     # Raster file name
     drivers = gdal_driver_list()  # get driver list
-    if not drivers.has_key(driver):
+    if driver not in drivers:
         raise TypeError('Wrong driver name {}'.format(driver))
 
     # Check filename
-    ext = '.' + drivers[driver]
-    if not filename.endswith(ext):
-        filename = _os.path.splitext(filename)[0]
-        filename += ext
+    ext = drivers[driver]
+    filename = _validation.output_file(filename, ext)
+
+    # Check geotransform
+    if geotransform is None:
+        geotransform = [0, 100, 0, 0, 0, -100]
 
     # Get data type
     if dtype == float:
@@ -990,17 +1079,18 @@ def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
         dtype = _gdal.GDT_Float32
 
     # Get bands number
-    if _np.ndim(data) == 2:
+    if type(data) != _np.ndarray:
+        data = _np.array(data)
+    if data.ndim == 2:
         nbands = 1
         ysize, xsize = _np.shape(data)
-    elif _np.ndim(data) == 3:
+    elif data.ndim == 3:
         nbands, ysize, xsize = _np.shape(data)
     else:
         raise TypeError('Wrong data type {}!'.format(str(type(data))))
     nbands, xsize, ysize = int(nbands), int(xsize), int(ysize)
 
     # Check parameters
-    # check geotransform
     if type(geotransform) in [list, tuple, _np.ndarray]:
         if len(geotransform) != 6:
             raise TypeError('Wrong geotransform dimensions!')
@@ -1038,14 +1128,15 @@ def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],
 
 def grid_system(grid=None):
     """
-    Create or read a grid system
+    Create an empty grid system or read a grid system from a .sgrd file
+
     INPUTS
      grid      [string] grid system file (.sgrd). By default grid is None.
                 When grid is None an empty grid system is created
     OUTPUTS
      gridsys   [dict] grid system
     """
-    if grid is None:  # deifine an empty gridsystem
+    if grid is None:  # define an empty gridsystem
         gridsys = _OrderedDict()  # empty orderdict
         gridsys['NAME'] = 'New'
         gridsys['DESCRIPTION'] = ''
@@ -1065,11 +1156,7 @@ def grid_system(grid=None):
 
     else:  # Grid system from file
         # Check input
-        grid = _files.default_file_ext(grid, 'grid')
-
-        # check if grid exist
-        if not _os.path.exists(grid):
-            raise IOError('Grid does not exist!')
+        grid = _validation.input_file(grid, 'grid', True)
 
         # Open File
         gridsys = _OrderedDict()
@@ -1084,21 +1171,21 @@ def grid_system(grid=None):
 
         # Convert some values
         # BYTEORDER_BIG key
-        if gridsys.has_key('BYTEORDER_BIG'):
+        if 'BYTEORDER_BIG' in gridsys:
             if gridsys['BYTEORDER_BIG'].lower() == 'true':
                gridsys['BYTEORDER_BIG'] = True
             elif gridsys['BYTEORDER_BIG'].lower() == 'false':
                gridsys['BYTEORDER_BIG'] = False
 
         # TOPTOBOTTOM key
-        if gridsys.has_key('TOPTOBOTTOM'):
+        if "TOPTOBOTTOM" in gridsys:
             if gridsys['TOPTOBOTTOM'].lower() == 'true':
                gridsys['TOPTOBOTTOM'] = True
             elif gridsys['TOPTOBOTTOM'].lower() == 'false':
                gridsys['TOPTOBOTTOM'] = False
 
         # DATAFORMAT key
-        if gridsys.has_key('DATAFORMAT'):
+        if 'DATAFORMAT' in gridsys:
             if gridsys['DATAFORMAT'].upper() == 'FLOAT':
                gridsys['DATAFORMAT'] = float
             elif gridsys['DATAFORMAT'].upper() == 'BYTE_UNSIGNED':
@@ -1108,22 +1195,22 @@ def grid_system(grid=None):
         keys = ['DATAFILE_OFFSET', 'CELLCOUNT_X',
                 'CELLCOUNT_Y', 'Z_OFFSET']
         for key in keys:
-            if gridsys.has_key(key):
+            if key in gridsys:
                 gridsys[key] = int(gridsys[key])
 
         # Float values
         keys = ['POSITION_XMIN', 'POSITION_YMIN', 'CELLSIZE',
                 'Z_FACTOR', 'NODATA_VALUE']
         for key in keys:
-            if gridsys.has_key(key):
+            if key in gridsys:
                 gridsys[key] = float(gridsys[key])
-
     return(gridsys)  # grid_sys()
 
 
 def get_grid_extent(grid):
     """
-    Get grid extent
+    Get grid extent from a .sgrd file
+
     INPUTS
      grid       [str] grid system file name (.sgrd)
     OUTPUTS
@@ -1133,7 +1220,7 @@ def get_grid_extent(grid):
         gs = _deepcopy(grid)
     else:
         # Check inputs
-        grid = _files.default_file_ext(grid, 'grid')
+        grid = _validation.input_file(grid, 'grid', True)
         # Get grid system and values
         gs = grid_system(grid)
     xmin = gs['POSITION_XMIN']
@@ -1148,11 +1235,13 @@ def get_grid_extent(grid):
 
 def cell_with_value(data):
     """
-    Get rows and cols of pixels with values in an array
+    Get rows and cols of pixels with values in an array. That means that
+    pixels with nans are ignored
+
     INPUTS
      data    [np.ndarray, GridObj] input array or GridObj
     OUTPUTS
-     pixels  [np.ndarray] output array with [[row1, col1], [row2, col2],...]
+     pixels  [np.ndarray (int)] output array with [[row1, col1], [row2, col2],...]
     """
     if type(data) is GridObj:
         data = data.get_data()
@@ -1160,7 +1249,7 @@ def cell_with_value(data):
         raise TypeError('Bad pixels parameter type {}'.format(str(type(data))))
 
     # Get rows and cols with data
-    rows, cols = _np.where(_np.isnan(data) == False)
+    rows, cols = _np.where(~_np.isnan(data))
     pixels = _np.array(zip(rows, cols), dtype=int)
     return(pixels)  # cell_with_value()
 
