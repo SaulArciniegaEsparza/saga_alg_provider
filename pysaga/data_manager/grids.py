@@ -67,8 +67,12 @@ class GridObj(object):
         self.ysize = 0
         self.bands = 0
 
-    # Raster connection using gdal library
     def read_file(self, filename):
+        """
+        Connection with a raster file using gdal driver
+        INPUTS:
+          filename      [string] valid raster file compatible with gdal
+        """
         # Check grids file
         if filename.endswith('.sgrd'):  # change sgrd to sdat
             filename = _files.default_file_ext(filename, 'sdat', True)
@@ -86,15 +90,16 @@ class GridObj(object):
         del(raster)
         # read_raster()
 
-    # Raster file disconnection
     def close(self):
+        """
+        Raster file disconnection. It's necessary for avoid conflicts with data
+        """
         if type(self.driver) is _gdal.Dataset:
-            self.driver = None
             self._reset_attributes()
 
     def get_grid_info(self):
         """
-        Use gdal library for extract raster information
+        Use gdal library for extract raster information as a dictionary
         OUTPUT
          rinfo     [dict] raster information dictionary
         """
@@ -102,28 +107,29 @@ class GridObj(object):
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get raster properties
-        geotrans = self.driver.GetGeoTransform()  # get transformation
+        geotrans = _deepcopy(self.driver.GetGeoTransform())  # get transformation
         projref = self.driver.GetProjectionRef()  # get projection
         drivername = self.driver.GetDriver().ShortName  # get file driver
         xsize = self.driver.RasterXSize  # get x size
         ysize = self.driver.RasterYSize  # get y size
         bands = self.driver.RasterCount  # count number of layers
         # Output data
-        rinfo = {'geotransform' : geotrans,
-                 'projectionref' : projref,
-                 'drivername' : drivername,
-                 'xsize' : xsize,
-                 'ysize' : ysize,
-                 'bands' : bands}
+        rinfo = {'geotransform': geotrans,
+                 'projectionref': projref,
+                 'drivername': drivername,
+                 'xsize': xsize,
+                 'ysize': ysize,
+                 'bands': bands}
         return(rinfo)  # grid_info()
 
-    def get_coordinates(self, extent=None, index=False):
+    def get_coordinates(self, extent=None, index=False, center=True):
         """
-        Get grid coordinates of whole data or from selected points
+        Get grid coordinates of whole data or from a selected extent
         INPUTS
-         row, col    [int, list] input row and cols of pixels. If row=col=None, all pixels
-                      coordinates are returned
-         slice       [boolean] if slice is True, row and col is used as extent
+         extent    [list, tuple, np.ndarray] extension [xmin, xmax, ymin, ymax]
+         index     [bool] if True, extension is used as [row_min, row_max, col_min, col_max]
+         center    [bool] if True, centered pixel coordinates are returned, in other case
+                    upper left corner is returned
         OUTPUT
          X, Y        [np.array] X and Y coordinate matrix
         """
@@ -131,13 +137,16 @@ class GridObj(object):
             raise TypeError('You must connect with a raster file!')
 
         # Get geo transformation
-        gt = _deepcopy(self.geotransform)
+        gt = self.geotransform
 
         # Define get coordinates sub-function
         def get_coors_matrix(rows, cols):
             # Get coordinates matrix
             X = gt[0] + cols * gt[1] + rows * gt[2]
             Y = gt[3] + cols * gt[4] + rows * gt[5]
+            if center:
+                X += gt[1] / 2.0
+                Y += gt[5] / 2.0
             return(X, Y)
 
         # Extract by extent or by pixels
@@ -149,28 +158,33 @@ class GridObj(object):
         elif type(extent) in [list, tuple, _np.ndarray]:  # use extent
             if not index:  # use coordinates
                 # convert extent to rows and cols
-                points = [[extent[0], extent[2]], [extent[1], extent[3]]]
+                points = [[extent[0], extent[2]],
+                          [extent[1], extent[3]]]
                 pixels = self.coor2pixel(points)
                 # convert pixel to extent
-                extent = [pixels[0, 1], pixels[1, 1],
-                          pixels[1, 0], pixels[0, 0]]
+                extent = pixels[[0, 1, 0, 1], [0, 0, 1, 1]]
 
             # Check extent
+            extent = [min(extent[:2]), max(extent[:2]),
+                      min(extent[2:]), max(extent[2:])]
+
             assert 0 <= extent[0] < extent[1]
-            assert extent[0] < extent[1] <= self.xsize
+            assert extent[0] < extent[1] <= self.ysize
             assert 0 <= extent[2] < extent[3]
-            assert extent[2] < extent[3] <= self.ysize
+            assert extent[2] < extent[3] <= self.xsize
             # Get pixel indexes
-            cols, rows = _np.meshgrid(_np.arange(extent[0], extent[1] + 1),
-                                      _np.arange(extent[2], extent[3] + 1))
+            cols, rows = _np.meshgrid(_np.arange(extent[2], extent[3] + 1, dtype=int),
+                                      _np.arange(extent[0], extent[1] + 1, dtype=int))
             X, Y = get_coors_matrix(rows, cols)  # get coordinates
         return(X, Y)  # get_grid_coordinates()
 
-    def get_extent(self):
+    def get_extent(self, center=True):
         """
         Get raster extent
         OUTPUTS
          extent    [np.ndarray] extent as [xmin, xmax, ymin, ymax]
+         center    [bool] if True, centered pixels coordinates are used,
+                    in other case upper left corner is used
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
@@ -181,15 +195,16 @@ class GridObj(object):
         # get coordinates
         X = gt[0] + cols * gt[1] + rows * gt[2]
         Y = gt[3] + cols * gt[4] + rows * gt[5]
+        if center:
+            X += gt[1] / 2.0
+            Y += gt[5] / 2.0
         # Output extent
-        X = [X.min(), X.max()]
-        Y = [Y.min(), Y.max()]
-        extent = _np.hstack((X, Y))  # extent
+        extent = _np.array([X.min(), X.max(), Y.min(), Y.max()])
         return(extent)  # get_extent()
 
     def get_resolution(self):
         """
-        Return pixel width and height
+        Return pixel width and height (as absolute values)
         OUTPUTS
          width, height    [float] pixel size
         """
@@ -209,7 +224,7 @@ class GridObj(object):
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
         # Get geotransform
-        gt = _deepcopy(self.geotransform)
+        gt = self.geotransform
         origin = (gt[0], gt[3])
         return(origin)
 
@@ -245,14 +260,16 @@ class GridObj(object):
             nodata = _np.array(data)
         return(nodata)  # get_nodata()
 
-    def pixel2coor(self, pixels):
+    def pixel2coor(self, pixels, center=True):
         """
-        Extract coordinates from a pixel
+        Extract coordinates given pixels row and col
         INPUTS
-         pixels     [list, tuple, np.ndarray] [row, col] array. For multiple pixels use
-                     [[row1, col1], [row2, col2],...]
+         pixels     [list, tuple, np.ndarray] array with [row, col] indexes.
+                      For multiple pixels use [[row1, col1], [row2, col2],...]
         OUTPUT
          coors      [np.ndarray] output coordinate arrays [[x1, y1], [x2, y2]]
+
+         NOTE: note that input is row, col and the output is x, y
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
@@ -263,22 +280,27 @@ class GridObj(object):
             if pixels.ndim == 1 and pixels.shape[-1] == 2:
                 pixels = pixels.reshape(1, 2)
             elif pixels.ndim > 2 or pixels.shape[-1] != 2:
-                raise TypeError('Bad pixels dimenssions {}'.format(str(pixels.shape)))
+                raise TypeError('Bad pixels dimensions {}'.
+                                format(str(pixels.shape)))
         else:
-            raise TypeError('Wrong pixels parameter type {}'.format(str(type(pixels))))
+            raise TypeError('Wrong pixels parameter type {}'.
+                            format(str(type(pixels))))
         # Check errors
-        assert 0 <= pixels[:, 0].min()
-        assert pixels[:, 0].max() < self.ysize
-        assert 0 <= pixels[:, 1].min()
-        assert pixels[:, 1].max() < self.xsize
+        assert 0 <= pixels[:, 0].min(), "rows can't be lower than 0"
+        assert pixels[:, 0].max() < self.ysize - 1, "rows can't be higher than ysize-1"
+        assert 0 <= pixels[:, 1].min(), "cols can't be lower than 0"
+        assert pixels[:, 1].max() < self.xsize, "cols can't be higher than xsize-1"
 
         # Get coordinates
         rows, cols = pixels[:, 0], pixels[:, 1]
-        gt = _deepcopy(self.geotransform)  # get geotransform
-        X = gt[0] + cols * gt[1] + rows * gt[2]
-        Y = gt[3] + cols * gt[4] + rows * gt[5]
+        gt = self.geotransform  # get geotransform
+        x = gt[0] + cols * gt[1] + rows * gt[2]
+        y = gt[3] + cols * gt[4] + rows * gt[5]
+        if center:  # get center coordinates
+            x += gt[1] / 2.0
+            y += gt[5] / 2.0
         # Return object
-        coors = _np.array(zip(X, Y), dtype=float)
+        coors = _np.hstack((x.reshape((len(x), 1)), y.reshape(len(y), 1)))
         return(coors)  # pixel2coor()
 
     def coor2pixel(self, points):
@@ -289,6 +311,8 @@ class GridObj(object):
                       For multiple points use [[x1, y1], [x2, y2], ...]
         OUPUTS
          pixels   [np.ndarray] rows and cols of coordinates [[row1, col1], [row2, col2]]
+
+         NOTE: note that input is x, y and the output is row, col
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
@@ -392,18 +416,18 @@ class GridObj(object):
             data.index.name = 'band'
         return(data)  # get_pixel_values()
 
-    def get_data(self, bands=1, extent=None, index=False, dtype=_np.float64):
+    def get_data(self, bands=1, extent=None, index=False, dtype=float):
         """
         Get raster values from bands
         INPUTS
          bands     [int, list] band number or list of band numbers
          extent    [list] grid extent with cells number or coordinates [xmin, xmax, ymin, ymax]
-         index     [boolean] if index is True, extent uses row and col indexes. If index
-                    is False (default) extent uses coordinates
-         dtype     [int, float, np.int, np.float] data type
+         index     [boolean] if index is True, extent uses row and col indexes as
+                             [row_min, row_max, col_min, col_max]
+         dtype     [type] data type. By default float
         OUTPUT
          data      [np.array] output numpy array. If bands is a list, output data is
-                    an 3 dimensional array
+                    a 3 dimensional array
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
@@ -423,9 +447,14 @@ class GridObj(object):
             xsize = int(self.xsize)
             ysize = int(self.ysize)
 
-        elif len(extent) == 4:
+        elif type(extent) in (list, tuple, _np.ndarray):
+            if len(extent) != 4:
+                raise TypeError('Bad extent type {}!'.format(str(type(extent))))
+
             if index:  # use extent as cell index
-                extent = [int(value) for value in extent]
+                extent = _np.array(extent, dtype=int)
+                extent = [extent[2:].min(), extent[2:].max(),
+                          extent[:2].min(), extent[:2].max()]
                 xoff, xsize, yoff, ysize = extent
 
             else:      # use extent as coordinates
@@ -543,7 +572,7 @@ class GridObj(object):
 
         # Check filename
         drivers = gdal_driver_list()  # get driver list
-        if not drivers.has_key(driver):
+        if driver not in drivers:
             raise TypeError('Wrong driver name {}'.format(driver))
         ext = '.' + drivers[driver]
         if not filename.endswith(ext):
@@ -566,7 +595,7 @@ class GridObj(object):
 
     def to_memory(self):
         """
-        Make a virtual copy of GridObj
+        Create a virtual copy of GridObj
         OUTPUTS
          newobj       [GridObj] virtual GridObj
         """
@@ -923,7 +952,7 @@ def create_virtualraster(data, geotransform=[0, 100, 0, 0, 0, -100],
     gridobj.xsize = xsize
     gridobj.ysize = ysize
     # Return object
-    return(gridobj)  #   create_virtualraster()
+    return(gridobj)  # create_virtualraster()
 
 
 def array2raster(filename, data, geotransform=[0, 100, 0, 0, 0, -100],

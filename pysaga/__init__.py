@@ -68,6 +68,7 @@ tools.tables._files = utilities.files
 tools.terrain_analysis._files = utilities.files
 
 user_tools.methods._files = utilities.files
+data_manager.grids._files = utilities.files
 
 # Set utilities.data_validation as _validation
 tools.climate._validation = utilities.data_validation
