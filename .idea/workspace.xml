@@ -27,8 +27,8 @@
       <file leaf-file-name="grids.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pysaga/data_manager/grids.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="532">
-              <caret line="412" column="16" lean-forward="true" selection-start-line="412" selection-start-column="16" selection-end-line="412" selection-end-column="16" />
+            <state relative-caret-position="250">
+              <caret line="394" column="27" lean-forward="true" selection-start-line="394" selection-start-column="27" selection-end-line="394" selection-end-column="27" />
               <folding>
                 <element signature="e#191#207#0" expanded="true" />
               </folding>
@@ -620,8 +620,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/data_manager/grids.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="532">
-          <caret line="412" column="16" lean-forward="true" selection-start-line="412" selection-start-column="16" selection-end-line="412" selection-end-column="16" />
+        <state relative-caret-position="250">
+          <caret line="394" column="27" lean-forward="true" selection-start-line="394" selection-start-column="27" selection-end-line="394" selection-end-column="27" />
           <folding>
             <element signature="e#191#207#0" expanded="true" />
           </folding>

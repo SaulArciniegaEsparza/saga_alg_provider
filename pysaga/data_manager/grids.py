@@ -396,10 +396,12 @@ class GridObj(object):
         if center:
             points[:, 0] -= width / 2.0
             points[:, 1] += height / 2.0
-
+        
+        print(points)
+        
         cols = _np.array(_np.round((points[:, 0] - origin[0]) / width), dtype=int)
         rows = _np.array(_np.round((origin[1] - points[:, 1]) / height), dtype=int)
-
+        
         if remove:
             pos = _np.where((rows < 0) | (rows > (self.ysize - 1)) |
                             (cols < 0) | (cols > (self.xsize - 1)))[0]
@@ -411,7 +413,7 @@ class GridObj(object):
             rows[rows > (self.ysize - 1)] = self.ysize - 1
             cols[cols < 0] = 0
             cols[cols > (self.xsize - 1)] = self.xsize - 1
-
+        
         # Return pixels
         pixels = _np.array(zip(rows, cols), dtype=int)
         return(pixels)  # coor2pixel()
@@ -549,8 +551,6 @@ class GridObj(object):
         bands = _np.unique(_np.sort(bands))
         data = _np.full((max(bands), ysize, xsize), _np.nan, dtype=dtype)
 
-        print(xoff, yoff, xsize, ysize)
-
         for i in range(len(bands)):
             # verify raster band
             assert 1 <= bands[i] <= self.bands
@@ -588,7 +588,7 @@ class GridObj(object):
         if type(data) is not _np.ndarray:
             data = _np.array(data)
         # check dimensions
-        if data.ndims != 2:
+        if data.ndim != 2:
             raise TypeError('Parameter data must be a bidimenssional numpy array.')
         # check extent
         nr, nc = data.shape
@@ -631,6 +631,7 @@ class GridObj(object):
     def to_file(self, filename=None, driver='SAGA'):
         """
         Write GridObj in a raster file
+        
         INPUTS
          filename      [string] output raster file name
          driver        [string] gdal driver name. SAGA as default
@@ -675,7 +676,8 @@ class GridObj(object):
 
     def to_memory(self):
         """
-        Create a virtual copy of GridObj
+        Create a virtual copy of the actual GridObj
+        
         OUTPUTS
          newobj       [GridObj] virtual GridObj
         """
@@ -707,6 +709,7 @@ class GridObj(object):
         """
         Copy resolution and projection from other GridObj
         Results are saved in a virtual raster
+        
         INPUTS
          refobj        [instance] reference GridObj
          resampling    [int] resampling method
@@ -859,6 +862,7 @@ class GridObj(object):
     def reproject(self, proj, resampling=3, threshold=0.125):
         """
         Reproject raster and save in a virtual raster
+        
         INPUTS
          proj          [int, str] proj can be a EPSG integer code or
                         a Well Known string projection
@@ -921,6 +925,7 @@ class GridObj(object):
     def is_compatible(self, refobj):
         """
         Check if GridObj is compatible for direct map algebra
+        
         with a reference GridObj
         INPUTS
          refobj       [GridObj] reference GridObj
