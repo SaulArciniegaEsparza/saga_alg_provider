@@ -44,6 +44,7 @@ environment = _SAGAenv()
 # Set environment
 tools.climate._env = environment
 tools.grids._env = environment
+tools.imagery._env = environment
 tools.import_export._env = environment
 tools.projection._env = environment
 tools.shapes._env = environment
@@ -61,6 +62,7 @@ user_tools.methods._io = data_manager.grids
 # Set utilities.files as _files
 tools.climate._files = utilities.files
 tools.grids._files = utilities.files
+tools.imagery._files = utilities.files
 tools.import_export._files = utilities.files
 tools.projection._files = utilities.files
 tools.shapes._files = utilities.files
@@ -74,6 +76,7 @@ data_manager.grids._files = utilities.files
 # Set utilities.data_validation as _validation
 tools.climate._validation = utilities.data_validation
 tools.grids._validation = utilities.data_validation
+tools.imagery._validation = utilities.data_validation
 tools.import_export._validation = utilities.data_validation
 tools.projection._validation = utilities.data_validation
 tools.shapes._validation = utilities.data_validation
