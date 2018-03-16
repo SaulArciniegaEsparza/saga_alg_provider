@@ -24,19 +24,16 @@ _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 # ==============================================================================
 
 
-def gdal_import_raster(outgrid, inraster, band=0, transform=True, method=3):
+def gdal_import_raster(outgrid, inraster, transform=True, method=3):
     """
     Convert a gdal supported raster format to saga grid format
 
     library: io_gdal  tool: 0
 
     INPUTS
-     outgrid       [string] output grid file name
+     outgrid       [string] output grid file name or basename for multiple bands
      inraster      [string] input raster file name
-     band          [int, list] if band is an integer, the band number is imported
-                    if band is a list of integers, multiple bands are imported
-                    if band is None, all bands are imported (need gdal library)
-     transform     [boolean] activate/desactivate grid resampling
+     transform     [bool] activate/desactivate grid resampling
      method        [int] resampling method
                     [0] Nearest Neighbour
                     [1] Bilinear Interpolation
@@ -44,35 +41,15 @@ def gdal_import_raster(outgrid, inraster, band=0, transform=True, method=3):
                     [3] B-Spline Interpolation (default)
     """
     # Check inputs
-    outgrid = _validation.output_file(outgrid, 'grid')
-
+    outgrid = os.path.splitext(outgrid)[0]
     method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
-    if type(band) is int:
-        band = str(band)
-    elif type(band) is list:
-        # get grid base name
-        outgrid_base = outgrid.replace('.sgrd', '')
-        outgrid = [outgrid_base + str(b) + '.sgrd' for b in band]
-        band = [str(b) for b in band]
-        band = ';'.join(band)
-        outgrid = ';'.join(outgrid)
-    else:
-        # get raster info
-        grid_obj = _io.GridObj(inraster)
-        rinfo = grid_obj.get_grid_info()
-        grid_obj.close_connection()
-
-        nbands = rinfo['bands']  # number of bands
-        outgrid_base = _os.path.splitext(outgrid)[0]
-        outgrid = [outgrid_base + str(b) + '.sgrd' for b in range(nbands)]
-        band = [str(b) for b in range(nbands)]
-        band = ';'.join(band)
-        outgrid = ';'.join(outgrid)
     transform = str(int(transform))
     method = str(method)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'io_gdal', '0', '-FILES', inraster, '-GRIDS', outgrid,
-           '-SELECTION', band, '-TRANSFORM', transform, '-RESAMPLING', method]
+           '-TRANSFORM', transform, '-RESAMPLING', method, '-SELECTION', '0']
+    if _env.saga_version[0] not in ['2', '3', '4']:
+        cmd.extend(['-MULTIPLE', '0'])
     # Run command
     flag = _env.run_command_logged(cmd)
     if not flag:
@@ -80,7 +57,7 @@ def gdal_import_raster(outgrid, inraster, band=0, transform=True, method=3):
                                                   f_code.co_name, _env.errlog))
 
 
-def export_geotiff(outraster, ingrid):
+def gdal_export_geotiff(outraster, ingrid, op=None):
     """
     Export multiple grids in a geotiff raster
 
@@ -91,6 +68,8 @@ def export_geotiff(outraster, ingrid):
      ingrid        [string, list] if ingrid is a string, only a grid is exported
                     if ingrid is a list, multiple grids are added to the output
                     raster file
+     op            [string] Creation options must contain a space separated list
+                    of key-value pairs (K=V)
     """
     # Check inputs
     outraster = _validation.output_file(outraster, 'tif')
@@ -101,6 +80,8 @@ def export_geotiff(outraster, ingrid):
         ingrid = ';'.join(ingrid)
     # Create cmd
     cmd = ['saga_cmd', 'io_gdal', '2', '-GRIDS', ingrid, '-FILE', outraster]
+    if op is not None:
+        cmd.extend(['-OPTIONS', op])
     # Run command
     flag = _env.run_command_logged(cmd)
     if not flag:
@@ -108,14 +89,14 @@ def export_geotiff(outraster, ingrid):
                                                   f_code.co_name, _env.errlog))
 
 
-def export_shapes(outshape, inshape, formatid=0):
+def gdal_export_shapes(outshape, inshape, formatid=0):
     """
     Export vectorial data
 
     library: io_gdal  tool: 4
 
     INPUTS
-     outshape      [string] output vector layer
+     outshape      [string] output vector layer with file extension
      inshape       [string] input vector layer
      formatid      [int] output format identifier. Since formatid depends of the
                     SAGA version and GDAL version, identifier must be consulted
@@ -133,7 +114,7 @@ def export_shapes(outshape, inshape, formatid=0):
                                                   f_code.co_name, _env.errlog))
 
 
-def export_shapes_to_kml(outfile, inshape):
+def gdal_export_shapes_to_kml(outfile, inshape):
     """
     Export a shapefile to kml format
 
@@ -156,7 +137,7 @@ def export_shapes_to_kml(outfile, inshape):
                                                   f_code.co_name, _env.errlog))
 
 
-def import_netcdf(folder, infile, transform=True, resampling=3):
+def gdal_import_netcdf(folder, infile, transform=True, resampling=3):
     """
     Import a netcdf file into multiple grids
 
@@ -191,10 +172,106 @@ def import_netcdf(folder, infile, transform=True, resampling=3):
 # Library: io_grid
 # ==============================================================================
 
-
-def import_clip_geotiff(outgrid, ingrid, polygon=None, cellsize=0, keep_type=False):
+def export_surfer_grid(outgrid, ingrid, out_format=0, nodata=False):
     """
-    Import, clip and resampling a geotiff raster
+    Export grid to Golden Software's Surfer grid format
+
+    INPUTS
+     outgrid       [string] output Golden Software grid
+     outgrid       [string] input grid or geotif
+     format        [int] output format file
+                    [0] binary (default)
+                    [1] ASCII
+     nodata        [bool] if True, use Surfer's No-Data value, in other case
+                    use the input grid No-Data value
+    """
+    outgrid = _validation.output_file(outgrid, 'grd')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Input parameters
+    out_format = _validation.input_parameter(out_format, 0, vrange=[0, 1], dtypes=[int])
+    nodata = str(int(nodata))
+    # Create cmd
+    cmd = ['saga_cmd', 'io_grid', '2', '-FILE', outgrid, '-GRID', ingrid,
+           '-NODATA', nodata, '-FORMAT', out_format]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
+def import_surfer_grid(outgrid, ingrid, nodata=None):
+    """
+    Import grid from Golden Software's Surfer grid format
+
+    INPUTS
+     outgrid       [string] output saga grid
+     ingrid        [string] input Golden Software grid
+     nodata        [int, float] if None (default) uses Surfer's No Data Value,
+                    in other case, user defined value is used as no data
+    """
+    outgrid = _validation.output_file(outgrid, 'sgrd')
+    ingrid = _validation.input_file(ingrid, 'grd', True)
+    if nodata is None:
+        nodata = '0'
+        nodataval = '-99999.0'
+    else:
+        nodataval = str(nodata)
+        nodata = '1'
+    # Create cmd
+    cmd = ['saga_cmd', 'io_grid', '3', '-FILE', ingrid, '-GRID', outgrid,
+           '-NODATA', nodata, '-NODATA_VAL', nodataval]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
+def import_grid_from_xyz(outgrid, infile, skip=0, cellsize=1., delimiter='\t'):
+    """
+
+    :return:
+    """
+    outgrid = _validation.output_file(outgrid, 'sgrd')
+    infile = _validation.input_file(infile, 'txt', False)
+    # Input parameters
+    cellsize = str(cellsize)
+    if _env.saga_version[0] in ['2', '3']:
+        if skip == 0:
+            caption = '0'
+        else:
+            caption = '1'
+        default_delim = {' ': 0, '\t': 1, ',': 2, ';': 3}
+        if delimiter in default_delim:
+            separator = default_delim[delimiter]
+        else:
+            raise ValueError('{} is not a valid column delimiter'.format(delimiter))
+    else:
+        default_delim = {' ': 1, '\t': 4, ',': 2, ';': 3}
+        skip = str(int(skip))
+        if delimiter in default_delim:
+            separator = default_delim[delimiter]
+        else:
+            separator = '5'
+            user_separator = str(delimiter)
+    # Create cmd
+    cmd = ['saga_cmd', 'io_grid', '6', '-FILE', infile, '-GRID', outgrid,
+           '-CELLSIZE', cellsize, '-SEPARATOR', separator]
+    if _env.saga_version[0] in ['2', '3']:
+        cmd.extend(['-CAPTION', caption])
+    else:
+        cmd.extend(['-SKIP', skip, '-USER', user_separator])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
+def import_clip_grid(outgrid, ingrid, polygon=None, cellsize=0, keep_type=False):
+    """
+    Import, clip and resampling an input raster
 
     library: io_grid  tool: 16
 
