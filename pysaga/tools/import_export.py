@@ -568,7 +568,7 @@ def export_grid_to_image(outfile, ingrid, shade=None, file_kml=False, color_meth
     cmd = ['saga_cmd', '-f=q', 'io_grid_image', '0', '-GRID', ingrid, '-SHADE', shade, '-FILE', outfile,
            '-FILE_KML', file_kml, '-COLOURING', color_method, '-COL_PALETTE', palette, '-COL_COUNT',
            colors, '-COL_REVERT', inv_color, '-STDDEV', std, '-LUT', table]
-    if color_method == 2 and type(srange) in (list, tuple):
+    if color_method == '2' and type(srange) in (list, tuple):
         if len(srange) == 2:
             cmd.extend(['-STRETCH_MIN', str(min(srange)), '-STRETCH_MAX', str(max(srange))])
     if shade != 'NULL' and type(sbrange) in (list, tuple):
@@ -665,7 +665,7 @@ def export_grid_to_kml(outfile, ingrid, shade=None, kml_option=2, color_method=0
     cmd = ['saga_cmd', '-f=q', 'io_grid_image', '2', '-GRID', ingrid, '-SHADE', shade, '-FILE', outfile,
            '-OUTPUT', kml_option, '-COLOURING', color_method, '-COL_PALETTE', palette, '-COL_COUNT',
            colors, '-COL_REVERT', inv_color, '-STDDEV', std, '-LUT', table]
-    if color_method == 2 and type(srange) in (list, tuple):
+    if color_method == '2' and type(srange) in (list, tuple):
         if len(srange) == 2:
             cmd.extend(['-STRETCH_MIN', str(min(srange)), '-STRETCH_MAX', str(max(srange))])
     if shade != 'NULL' and type(sbrange) in (list, tuple):

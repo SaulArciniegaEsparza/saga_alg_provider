@@ -662,12 +662,12 @@ def dem_carve(outgrid, ingrid, inlines, width=10, depth=1):
 
     # convert to strings
     width, depth = str(width), str(depth)
-    # Apply buffer to lines
+    # Apply grid_buffer to lines
     auxshape = 'auxiliar_shape_lines.shp'
     if _env.workdir is not None:
         auxshape = _os.path.join(_env.workdir, auxshape)
     flag = _shapes.shapes_buffer(auxshape, inlines, dist=width, dissolve=True)
-    # Rasterize buffer
+    # Rasterize grid_buffer
     auxgrid = 'auxiliar_grid_river.sgrd'
     if _env.workdir is not None:
         auxgrid = _os.path.join(_env.workdir, auxgrid)

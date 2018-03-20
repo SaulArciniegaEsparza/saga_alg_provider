@@ -1201,7 +1201,10 @@ def grid_system(grid=None):
                 'CELLCOUNT_Y', 'Z_OFFSET']
         for key in keys:
             if key in gridsys:
-                gridsys[key] = int(gridsys[key])
+                try:
+                    gridsys[key] = int(gridsys[key])
+                except ValueError:
+                    gridsys[key] = float(gridsys[key])
 
         # Float values
         keys = ['POSITION_XMIN', 'POSITION_YMIN', 'CELLSIZE',
@@ -1221,7 +1224,7 @@ def get_grid_extent(grid):
     OUTPUTS
      extent     [np.ndarray] grid extent [xmin, xmax, ymin, ymax]
     """
-    if type(grid) is _OrderedDict:  # grid is a gridsystem
+    if type(grid) in (_OrderedDict, dict):  # grid is a gridsystem
         gs = _deepcopy(grid)
     else:
         # Check inputs

@@ -2059,18 +2059,18 @@ def close_gaps(outgrid, ingrid, mask=None, threshold=0.1):
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def buffer(outgrid, ingrid, dist=0):
+def grid_buffer(outgrid, ingrid, dist=0):
     """
-    Creates buffers around features in a grid. The output buffer grid cell
-    values refer to 1 inside the buffer, 2 for feature location.
+    Creates buffers around features in a grid. The output grid_buffer grid cell
+    values refer to 1 inside the grid_buffer, 2 for feature location.
 
     library: grids_tools  tool: 8
 
     INPUTS
      outgrid      [string] output grid file name
      ingrid       [string] input grid file name
-     dist         [int, float] buffer distance in map units. If dist=0 (default)
-                   grid values are used as buffer distance.
+     dist         [int, float] grid_buffer distance in map units. If dist=0 (default)
+                   grid values are used as grid_buffer distance.
     """
     # Check inputs
     outgrid = _validation.output_file(outgrid, 'grid')
@@ -2736,6 +2736,73 @@ def close_gaps_with_spline(outgrid, grid, mask=None, cells=0, points=100,
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
+def tiling(out_tiles, grid, overlap=0, ov_method=0, method=0, rows=1000, cols=1000,
+           extent=None, cellsize=0, xsize=100, ysize=100):
+    """
+    Creates several small grids from an input grid using tiling
+
+    library: grids_tools  tool: 27
+
+    INPUTS
+     out_tiles      [string] output tiles full base name (path + basename)
+     grid           [string] input grid file name
+     overlap        [int] overlaping cells
+     ov_method      [int] overlaping method
+                     [0] symmetric (default)
+                     [1] bottom / left
+                     [2] top / right
+     method         [int] tile size definition method
+                     [0] number of grid cells per tile (default)
+                     [1] coordinates (offset, range, cell size, tile size)
+     rows           [int] number of row cells per tile
+     cols           [int] number of column cells per tile
+     extent         [list, tuple] input user extent [xmin, xmax, ymin, ymax]. By default
+                     whole extent is used
+     cellsize       [int, float] cell size for output tiles
+     xsize          [int, float] tile size in x direction in map units
+     ysize          [int, float] tile size in y direction in map units
+    """
+    # Check inputs and outputs
+    grid = _validation.input_file(grid, 'grid', False)
+    basename = _os.path.splitext(_os.path.basename(out_tiles))[0]
+    path = _os.path.dirname(out_tiles)
+    if path == '':
+        path = _os.getcwd()
+    if not _os.path.exists(path):
+        _os.makedirs(path)
+    # Check parameters
+    overlap = _validation.input_parameter(overlap, 0, gt=0, dtypes=[int])
+    ov_method = _validation.input_parameter(ov_method, 0, vrange=[0, 2], dtypes=[int])
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
+    rows = _validation.input_parameter(rows, 1000, gt=1, dtypes=[int])
+    cols = _validation.input_parameter(cols, 1000, gt=1, dtypes=[int])
+    cellsize = _validation.input_parameter(cellsize, 0, gt=0, dtypes=[int, float])
+    xsize = _validation.input_parameter(xsize, 0, gt=0, dtypes=[int, float])
+    ysize = _validation.input_parameter(ysize, 0, gt=0, dtypes=[int, float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'grid_tools', '27', '-GRID', grid, '-OVERLAP', overlap,
+           '-OVERLAP_SYM', ov_method, '-METHOD', method, '-NX', cols, '-NY', rows,
+           '-DCELL', cellsize, '-DX', xsize, '-DY', ysize]
+    if method == '1':
+        if type(extent) in (tuple, list):
+            if len(extent) != 4:
+                raise TypeError('Length of extent must be 4. < {} > input'.format(len(extent)))
+        else:
+            extent = _io.get_grid_extent(grid)
+        user_extent = ['-XRANGE_MIN', str(min(extent[:2])), '-XRANGE_MAX', str(max(extent[:2])),
+                       '-YRANGE_MIN', str(min(extent[2:])), '-YRANGE_MAX', str(max(extent[2:]))]
+        cmd.extend(user_extent)
+    if _env.saga_version[0] == '2':
+        cmd.extend(['-SAVE_TILES', '1', '-TILE_PATH', path, '-TILE_BASENAME', basename])
+    else:
+        cmd.extend(['-TILES_SAVE', '1', '-TILES_PATH', path, '-TILES_NAME', basename])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
 def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
     """
     Regions with valid data in the input grid can be shrinking or expanded
@@ -2785,9 +2852,66 @@ def shrink_and_expand(outgrid, grid, method=0, mode=1, radius=10, expand=3):
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
+def clip_grids(outgrid, ingrid, method=0, extent=None, shapes=None, buff=0.):
+    """
+    Clip a grid to specified extent
+
+    library: grids_tools  tool: 31
+
+    INPUTS
+     outgrid        [string] output clipped grid
+     ingrid         [string] input grid file
+     method         [int] clip method
+                     [0] user defined [xmin, xmax, ymin, ymax] (default)
+                     [1] user defined [xmin, cols, ymin, rows]
+                     [2] shapes extent
+                     [3] polygon
+     extent         [tuple, list] input user extent. If method == 0 minimum and maximum
+                     coordinates must be used [xmin, xmax, ymin, ymax]. If method == 1
+                     then number of rows and cols are used as [xmin, cols, ymin, rows]
+     shapes         [string] optional input shape file for method 2 and 3
+     buff           [int, float] add grid_buffer (map units) to extent
+    """
+    # Check inputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Check parameters
+    buff = str(buff)
+    method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
+    if method in ('0', '1'):
+        if type(extent) in (list, tuple):
+            if len(extent) != 4:
+                raise TypeError('Length of extent must be equal to 4. < {} > input'.format(len(extent)))
+        else:
+            raise TypeError('Input parameter extent must be a list/tuple. < {} > input'.format(type(extent)))
+    else:
+        shapes = _validation.input_file(shapes, 'vector', True)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'grid_tools', '31', '-GRIDS', ingrid, '-CLIPPED', outgrid,
+           '-BUFFER', buff]
+    if method == '0':
+        user_extent = ['-XMIN', str(min(extent[:2])), '-XMAX', str(max(extent[:2])),
+                       '-YMIN', str(min(extent[2:])), '-YMAX', str(max(extent[2:]))]
+        cmd.extend(user_extent)
+    elif method == '1':
+        user_extent = ['-XMIN', str(extent[0]), '-NX', str(extent[1]),
+                       '-YMIN', str(extent[2]), '-NY', str(extent[3])]
+        cmd.extend(user_extent)
+    elif method == '2':
+        cmd.extend(['-SHAPES', shapes])
+    else:
+        cmd.extend(['-POLYGONS', shapes])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, [outgrid])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
 def copy_grid(outgrid, grid):
     """
-     Copy a grid file
+    Copy a grid file
 
     library: grids_tools  tool: 33
 

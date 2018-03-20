@@ -1867,24 +1867,24 @@ def split_shapes_by_attribute(outshape, inshape, field=0):
 def shapes_buffer(outshape, inshape, dist=100, field=None, scale=1.0,
                   dissolve=False, nzones=1, inner=False, darc=5.0):
     """
-    Vector based buffer construction
+    Vector based grid_buffer construction
 
     library: shapes_tools  tool: 18
 
     INPUTS
-     outshape    [string] output buffer shape
+     outshape    [string] output grid_buffer shape
      inshape     [string] output shapefile
-     dist        [int, float] define a single buffer distance for all features
+     dist        [int, float] define a single grid_buffer distance for all features
      field       [int, string] if field is None, dist parameter is used
                   If field is the index or name of the column in the attribute
                   table to use as a dist parameter for each feature
      scale       [float] if field parameter is not None, scale is a factor
                   that multiplies the value of the attribute table
      dissolve    [boolean] if dissolve is False (default) and nzones=1, then
-                  buffer layer is storage for each feature. If dissolve
-                  is True, a single buffer shape is created
-     nzones      [int] number of buffer zones
-     inner       [boolean] applies a inner buffer (only for polygons)
+                  grid_buffer layer is storage for each feature. If dissolve
+                  is True, a single grid_buffer shape is created
+     nzones      [int] number of grid_buffer zones
+     inner       [boolean] applies a inner grid_buffer (only for polygons)
      darc        [float] arc vertex distance [Degree]
     """
     # Check inputs
