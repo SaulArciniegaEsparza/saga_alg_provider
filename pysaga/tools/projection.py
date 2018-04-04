@@ -267,7 +267,8 @@ def shape_transformation(outshape, inshape, precise=False, crs_method=0,
 
 
 def grid_transformation(outgrid, ingrid, crs_method=0, resampling=4, keep_type=True,
-                        precise=False, proj="+proj=longlat +datum=WGS84 +no_defs"):
+                        precise=False, proj="+proj=longlat +datum=WGS84 +no_defs",
+                        cellsize=0, grid_extent=None):
     """
     Coordinate transformation for grids usign a proj4 text
     Projection routines make use of the Proj.4 Cartographic Projections library
@@ -293,7 +294,11 @@ def grid_transformation(outgrid, ingrid, crs_method=0, resampling=4, keep_type=T
                                  By default proj="+proj=longlat +datum=WGS84 +no_defs"
                     crs_method=1 [string] proj is a well known text (.prj extension)
                                   In this case, a .shp or .sgrd file can be used and
-                                  its associated .prj file is taken
+                                  its associated .prj file is used
+     cellsize      [int] output grid resolution in output projected coordinate system.
+                     If cellsize is zero, cellsize is automatic calculated using the
+                     output projection
+     grid_extent   [string] output grid extent in output projected coordinate system
     """
 
     # Check inputs
@@ -311,18 +316,26 @@ def grid_transformation(outgrid, ingrid, crs_method=0, resampling=4, keep_type=T
     precise = str(int(precise))
     proj = str(proj)
 
+    # check for grid system as grid extent
+    grid_extent = _validation.validate_gridsystem(grid_extent)
+
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'pj_proj4', '4', '-PRECISE', precise, '-KEEP_TYPE',
            keep_type, '-RESAMPLING', resampling, '-SOURCE', ingrid]
     if _env.saga_version[0] in ['2', '3']:
         cmd.extend(['-TARGET_GRID', outgrid])
-    elif _env.saga_version[0] in ['4', '5']:
+    else:
         cmd.extend(['-GRID', outgrid])
     if crs_method == 0:  # use a Proj4 parameters
         cmd.extend(['-CRS_METHOD', '0', '-CRS_PROJ4', proj])
-    else:  # use a well known text file
+    elif crs_method == 1:  # use a well known text file
         cmd.extend(['-CRS_METHOD', '0', '-CRS_FILE', proj])
 
+    if grid_extent is None:
+        if cellsize > 0:
+            cmd.extend(['-TARGET_DEFINITION', '0', '-TARGET_USER_SIZE', str(cellsize)])
+    else:
+        cmd.extend(['-TARGET_DEFINITION', '1', '-TARGET_TEMPLATE', grid_extent])
     # Run command
     flag = _env.run_command_logged(cmd)
     if not flag:

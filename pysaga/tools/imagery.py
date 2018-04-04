@@ -229,10 +229,88 @@ def confusion_matrix_grids(combined, matrix, classval, summary, gridA, gridB, no
 # Library: imagery_maxent
 # ==============================================================================
 
+def maximum_entropy_classification(out_classes, out_prob, training, field=0, grids_num=None,
+                                   grids_cat=None, create_probs=False, method=0, load_stats=None,
+                                   statistics=None, regul_method=1, regul_val=1., num_real=True,
+                                   min_prob=0, alpha=0.1, threshold=0., iterations=100, classes=32):
+    # Inputs and outputs
+    out_classes = _validation.output_file(out_classes, 'grid')
+    out_prob = _validation.output_file(out_prob, 'grid')
+    training = _validation.output_file(training, 'vector')
+    if type(grids_num) in (list, tuple):
+        grids_num = _validation.input_file(grids_num, 'grid', False)
+        grids_num_list = ';'.join(grids_num)
+    elif grids_num is None:
+        pass
+    else:
+        raise TypeError('grids_num must be a tuple or list. < {} > input'.format(type(grids_num)))
+    if type(grids_cat) in (list, tuple):
+        grids_cat = _validation.input_file(grids_cat, 'grid', False)
+        grids_cat_list = ';'.join(grids_cat)
+    elif grids_num is None:
+        pass
+    else:
+        raise TypeError('grids_cat must be a tuple or list. < {} > input'.format(type(grids_cat)))
+    if statistics is not None:
+        statistics = _validation.output_file(statistics, 'txt')
+    if load_stats is not None:
+        load_stats = _validation.input_file(load_stats, 'txt', False)
+    # Parameters
+    field = str(field)
+    create_probs, num_real = str(int(create_probs)), str(int(num_real))
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
+    regul_method = _validation.input_parameter(regul_method, 0, vrange=[0, 1], dtypes=[int])
+    regul_val = _validation.input_parameter(regul_val, 1., gt=0., dtypes=[int, float])
+    alpha = _validation.input_parameter(alpha, 0.1, gt=0., dtypes=[float])
+    threshold = _validation.input_parameter(threshold, 0., gt=0., dtypes=[float])
+    iterations = _validation.input_parameter(iterations, 100, gt=1, dtypes=[int])
+    classes = _validation.input_parameter(classes, 32, gt=1, dtypes=[int])
+    min_prob = _validation.input_parameter(min_prob, 0., vrange=[0, 1], dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_maxent', '0', '-TRAINING', training, '-FIELD', field,
+           '-CLASSES', out_classes, '-PROB', out_prob, '-PROBS_CREATE', create_probs, '-METHOD',
+           method, '-YT_REGUL', regul_method, '-YT_REGUL_VAL', regul_val, '-YT_NUMASREAL', num_real,
+           '-DL_ALPHA', alpha, '-DL_THRESHOLD', threshold, '-DL_ITERATIONS', iterations, '-NUM_CLASSES',
+           classes, '-PROB_MIN', min_prob]
+    if type(grids_num) is not None:
+        cmd.extend(['-FEATURES_NUM', grids_num_list])
+    if type(grids_cat) is not None:
+        cmd.extend(['-FEATURES_CAT', grids_cat_list])
+    if statistics is not None:
+        cmd.extend(['-YT_FILE_SAVE', statistics])
+    if load_stats is not None:
+        cmd.extend(['-YT_FILE_LOAD', load_stats])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(grids[0], [cluster])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
 
 # ==============================================================================
 # Library: imagery_opencv
 # ==============================================================================
+
+
+def opencv_boosting_classification():
+    pass
+
+
+def opencv_decision_tree_classification():
+    pass
+
+
+def opencv_fourier_transform():
+    pass
+
+
+def opencv_normal_bayes_classification():
+    pass
+
+
+def opencv_morphological_filter():
+    pass
 
 
 # ==============================================================================
@@ -240,9 +318,43 @@ def confusion_matrix_grids(combined, matrix, classval, summary, gridA, gridB, no
 # ==============================================================================
 
 
+def enhanced_vegetation_index():
+    pass
+
+
+def principle_components():
+    pass
+
+
+def vegetation_index():
+    pass
+
+
 # ==============================================================================
 # Library: imagery_vigra
 # ==============================================================================
 
+def vigra_edge_detection():
+    pass
+
+
+def vigra_fourier_filter():
+    pass
+
+
+def vigra_fourier_transform():
+    pass
+
+
+def vigra_fourier_transform_inv():
+    pass
+
+
+def vigra_morphological_filter():
+    pass
+
+
+def vigra_smoothing():
+    pass
 
 

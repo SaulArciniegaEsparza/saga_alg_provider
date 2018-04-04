@@ -1559,7 +1559,7 @@ def triangulation(outgrid, points, field=0, cellsize=100, grid_extent=None):
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def kernel_density_estimation(outgrid, points, field=0, radius=1.0, kernel=0,
+def kernel_density_estimation(outgrid, points, field=-1, radius=1.0, kernel=0,
                               cellsize=100, grid_extent=None):
     """
     Kernel density estimation
@@ -1569,7 +1569,8 @@ def kernel_density_estimation(outgrid, points, field=0, radius=1.0, kernel=0,
     INPUTS
      outgrid          [string] output interpolated grid
      points           [string] input points shapefile
-     field            [int, str] attribute index or name to interpolate
+     field            [int, str] attribute index or name to interpolate.
+                       If field is -1, kernel returns the points density
      kernel           [int] interpolation method
                        [0] quartic kernel (default)
                        [1] gaussian kernel
@@ -1583,7 +1584,7 @@ def kernel_density_estimation(outgrid, points, field=0, radius=1.0, kernel=0,
     points = _validation.input_file(points, 'vector', False)
     # get field name or index
     if type(field) is not str:
-        field = str(field)
+        field = str(int(field))
     # interpolation method
     kernel = _validation.input_parameter(kernel, 0, vrange=[0, 3], dtypes=[int])
     radius, cellsize = str(radius), str(cellsize)
