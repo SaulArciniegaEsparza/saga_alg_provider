@@ -229,61 +229,188 @@ def confusion_matrix_grids(combined, matrix, classval, summary, gridA, gridB, no
 # Library: imagery_maxent
 # ==============================================================================
 
-def maximum_entropy_classification(out_classes, out_prob, training, field=0, grids_num=None,
-                                   grids_cat=None, create_probs=False, method=0, load_stats=None,
-                                   statistics=None, regul_method=1, regul_val=1., num_real=True,
-                                   min_prob=0, alpha=0.1, threshold=0., iterations=100, classes=32):
+def maximum_entropy_classification(classes, probability, polygons, field=0,
+                                   grids_num=None, grids_cat=None, create_probs=False,
+                                   method=0, load_stats=None, save_stats=None,
+                                   reg=1, reg_val=1, prob_min=0, nums_real=True,
+                                   num_class=32, alpha=0.1, threshold=0.0,
+                                   iterations=100):
+    """
+    Supervised imagery classification using maximum entropy algorithm
+
+    library: imagery_maxent  tool: 0
+
+    INPUTS
+        classes          [string] output grid of classes
+        probability      [string] output grid of probability
+        polygons         [string] input training areas shapefile
+        field            [string, int] name or index of the tr
+        grids_num        [tuple, list] numerical grids for classification
+        grids_cat        [tuple, list] categorical grids for classification
+        create_probs     [bool] if True, probability grid for each category
+        method           [int] classification method
+                          [0] Yoshimasa Tsuruoka (default)
+                          [1] Dekang Lin
+        load_stats       [string] load statistic file for method=0
+        save_stats       [string] save statistic file for method=0
+        reg              [int] regularization method for method=0
+                          [0] none
+                          [1] L1 (default)
+                          [2] L2
+        reg_val          [int, float] regularization factor for method=0
+        prob_min         [int, float] minimum probability
+        nums_real        [bool] if True, real-valued numerical features are used.
+                          Only for method=0
+        num_class        [int] number of numeric value classes
+        alpha            [float] alpha factor for method=1
+        threshold        [int, float] threshold factor for method=1
+        iterations       [int] maximum interations for method=1
+    """
     # Inputs and outputs
-    out_classes = _validation.output_file(out_classes, 'grid')
-    out_prob = _validation.output_file(out_prob, 'grid')
-    training = _validation.output_file(training, 'vector')
+    classes = _validation.output_file(classes, 'grid')
+    probability = _validation.output_file(probability, 'grid')
+    polygons = _validation.input_file(polygons, 'vector', False)
+
+    if grids_num is None and grids_cat is None:
+        raise TypeError('grids_num and/or grids_class must be input!')
     if type(grids_num) in (list, tuple):
         grids_num = _validation.input_file(grids_num, 'grid', False)
         grids_num_list = ';'.join(grids_num)
-    elif grids_num is None:
-        pass
-    else:
-        raise TypeError('grids_num must be a tuple or list. < {} > input'.format(type(grids_num)))
+    elif grids_num is not None:
+        raise TypeError('Bad input type for grids_num <{}>'.format(grids_num))
     if type(grids_cat) in (list, tuple):
         grids_cat = _validation.input_file(grids_cat, 'grid', False)
         grids_cat_list = ';'.join(grids_cat)
-    elif grids_num is None:
-        pass
-    else:
-        raise TypeError('grids_cat must be a tuple or list. < {} > input'.format(type(grids_cat)))
-    if statistics is not None:
-        statistics = _validation.output_file(statistics, 'txt')
-    if load_stats is not None:
+    elif grids_cat is not None:
+        raise TypeError('Bad input type for grids_class <{}>'.format(grids_num))
+    if create_probs:
+        out_probs = _os.path.splitext(classes)[0] + '_probs'
+
+    if type(load_stats) is str:
         load_stats = _validation.input_file(load_stats, 'txt', False)
+    if type(save_stats) is str:
+        save_stats = _validation.output_file(save_stats, 'txt')
+
     # Parameters
     field = str(field)
-    create_probs, num_real = str(int(create_probs)), str(int(num_real))
     method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
-    regul_method = _validation.input_parameter(regul_method, 0, vrange=[0, 1], dtypes=[int])
-    regul_val = _validation.input_parameter(regul_val, 1., gt=0., dtypes=[int, float])
-    alpha = _validation.input_parameter(alpha, 0.1, gt=0., dtypes=[float])
-    threshold = _validation.input_parameter(threshold, 0., gt=0., dtypes=[float])
-    iterations = _validation.input_parameter(iterations, 100, gt=1, dtypes=[int])
-    classes = _validation.input_parameter(classes, 32, gt=1, dtypes=[int])
-    min_prob = _validation.input_parameter(min_prob, 0., vrange=[0, 1], dtypes=[float])
+    reg = _validation.input_parameter(reg, 0, vrange=[0, 2], dtypes=[int])
+    reg_val, prob_min = str(reg_val), str(prob_min)
+    nums_real, num_class = str(int(nums_real)), str(int(num_class))
+    alpha, threshold = str(alpha), str(threshold)
+    iterations = str(iterations)
+
     # Create cmd
-    cmd = ['saga_cmd', '-f=q', 'imagery_maxent', '0', '-TRAINING', training, '-FIELD', field,
-           '-CLASSES', out_classes, '-PROB', out_prob, '-PROBS_CREATE', create_probs, '-METHOD',
-           method, '-YT_REGUL', regul_method, '-YT_REGUL_VAL', regul_val, '-YT_NUMASREAL', num_real,
-           '-DL_ALPHA', alpha, '-DL_THRESHOLD', threshold, '-DL_ITERATIONS', iterations, '-NUM_CLASSES',
-           classes, '-PROB_MIN', min_prob]
-    if type(grids_num) is not None:
+    cmd = ['saga_cmd', '-f=q', 'imagery_maxent', '0', '-CLASSES', classes,
+           '-PROB', probability, '-TRAINING', polygons, '-FIELD', field,
+           '-METHOD', method, '-YT_REGUL', reg, '-YT_REGUL_VAL', reg_val,
+           '-YT_NUMASREAL', nums_real, '-DL_ALPHA', alpha, '-DL_THRESHOLD',
+           threshold, '-DL_ITERATIONS', iterations, '-NUM_CLASSES', num_class,
+           '-PROB_MIN', prob_min]
+    if grids_num:
         cmd.extend(['-FEATURES_NUM', grids_num_list])
-    if type(grids_cat) is not None:
+    if grids_cat:
         cmd.extend(['-FEATURES_CAT', grids_cat_list])
-    if statistics is not None:
-        cmd.extend(['-YT_FILE_SAVE', statistics])
-    if load_stats is not None:
+    if create_probs:
+        cmd.extend(['-PROBS_CREATE', '1', '-PROBS', out_probs])
+    if load_stats:
         cmd.extend(['-YT_FILE_LOAD', load_stats])
+    if save_stats:
+        cmd.extend(['-YT_FILE_SAVE', save_stats])
+
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    _validation.validate_crs(grids[0], [cluster])
+    _validation.validate_crs(polygons, [classes, probability])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
+def maximum_entropy_prediction(prediction, probability, points, grids_num=None,
+                               grids_cat=None, sample_density=1,
+                               method=0, load_stats=None, save_stats=None,
+                               reg=1, reg_val=1, nums_real=True,
+                               num_class=32, alpha=0.1, threshold=0.0,
+                               iterations=100):
+    """
+    Maximum Entropy Presence Prediction
+
+    library: imagery_maxent  tool: 1
+
+    INPUTS
+        classes          [string] output grid of presence predictor
+        probability      [string] output grid of presence probability
+        points           [string] input presence data points
+        grids_num        [tuple, list] numerical grids for classification
+        grids_cat        [tuple, list] categorical grids for classification
+        sample_density   [int, float] background sample density as percent
+        method           [int] classification method
+                          [0] Yoshimasa Tsuruoka (default)
+                          [1] Dekang Lin
+        load_stats       [string] load statistic file for method=0
+        save_stats       [string] save statistic file for method=0
+        reg              [int] regularization method for method=0
+                          [0] none
+                          [1] L1 (default)
+                          [2] L2
+        reg_val          [int, float] regularization factor for method=0
+        nums_real        [bool] if True, real-valued numerical features are used.
+                          Only for method=0
+        num_class        [int] number of numeric value classes
+        alpha            [float] alpha factor for method=1
+        threshold        [int, float] threshold factor for method=1
+        iterations       [int] maximum interations for method=1
+    """
+    # Inputs and outputs
+    prediction = _validation.output_file(prediction, 'grid')
+    probability = _validation.output_file(probability, 'grid')
+    points = _validation.input_file(points, 'vector', False)
+
+    if grids_num is None and grids_cat is None:
+        raise TypeError('grids_num and/or grids_class must be input!')
+    if type(grids_num) in (list, tuple):
+        grids_num = _validation.input_file(grids_num, 'grid', False)
+        grids_num_list = ';'.join(grids_num)
+    elif grids_num is not None:
+        raise TypeError('Bad input type for grids_num <{}>'.format(grids_num))
+    if type(grids_cat) in (list, tuple):
+        grids_cat = _validation.input_file(grids_cat, 'grid', False)
+        grids_cat_list = ';'.join(grids_cat)
+    elif grids_cat is not None:
+        raise TypeError('Bad input type for grids_class <{}>'.format(grids_num))
+
+    if type(load_stats) is str:
+        load_stats = _validation.input_file(load_stats, 'txt', False)
+    if type(save_stats) is str:
+        save_stats = _validation.output_file(save_stats, 'txt')
+
+    # Parameters
+    sample_density = _validation.input_parameter(sample_density, 1, vrange=[0, 100], dtypes=[int, float])
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
+    reg = _validation.input_parameter(reg, 0, vrange=[0, 2], dtypes=[int])
+    reg_val, iterations = str(reg_val), str(iterations)
+    nums_real, num_class = str(int(nums_real)), str(int(num_class))
+    alpha, threshold = str(alpha), str(threshold)
+
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_maxent', '1', '-PREDICTION', prediction,
+           '-PROB', probability, '-PRESENCE', points, '-BACKGROUND', sample_density,
+           '-METHOD', method, '-YT_REGUL', reg, '-YT_REGUL_VAL', reg_val,
+           '-YT_NUMASREAL', nums_real, '-DL_ALPHA', alpha, '-DL_THRESHOLD',
+           threshold, '-DL_ITERATIONS', iterations, '-NUM_CLASSES', num_class]
+    if grids_num:
+        cmd.extend(['-FEATURES_NUM', grids_num_list])
+    if grids_cat:
+        cmd.extend(['-FEATURES_CAT', grids_cat_list])
+    if load_stats:
+        cmd.extend(['-YT_FILE_LOAD', load_stats])
+    if save_stats:
+        cmd.extend(['-YT_FILE_SAVE', save_stats])
+
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(points, [prediction, probability])
     if not flag:
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
@@ -292,18 +419,35 @@ def maximum_entropy_classification(out_classes, out_prob, training, field=0, gri
 # Library: imagery_opencv
 # ==============================================================================
 
-
 def opencv_boosting_classification(out_classes, grids, training, field=0, normalize=False, method=1,
                                    max_depth=10, min_samples=2, max_categrs=10, use_rule=True,
                                    trunc_pruned=True, reg_acc=0.01, weak_count=100, trim_rate=0.95):
     """
-    Compares two classified grids and creates a confusion matrix and derived coefficients
-    as well as the combinations of both classifications as new grid.
+    Integration of the OpenCV Machine Learning library for Boosted Trees
+    classification of gridded features
 
-    library: imagery_classification  tool: 2
+    library: imagery_opencv  tool: 9
 
     INPUTS
-     combined        [string] output confused grid that combine both input grids
+     out_classes       [string] output classified grid
+     grids             [tuple, list] input list of grids to classified
+     training          [string] training polygon areas as shapefile
+     field             [int, string] index of name of input classification field for
+                         training areas
+     normalize         [bool] if True, input grids are normalized
+     method            [int] Boost Type
+                        [0] Discrete AdaBoost
+                        [1] Real AdaBoost (default)
+                        [2] LogitBoost
+                        [3] Gentle AdaBoost
+     max_depth         [int] maximum tree depth
+     min_samples       [int] minimum sample count
+     max_categrs       [int] maximum number of categories
+     use_rule          [bool] if True (default), use 1SE rule
+     trunc_pruned      [bool] if True (default), truncate pruned trees
+     reg_acc           [float] regression accuracy
+     weak_count        [int] weak count
+     trim_rate         [float] weight trim rate
     """
     # Inputs and outputs
     out_classes = _validation.output_file(out_classes, 'grid')
