@@ -110,9 +110,7 @@ def reproject_points(points, in_crs, out_crs):
 
     # Output array
     newpoints = _np.array(newpoints)
-    if not flag:
-        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
-                                                  f_code.co_name, _env.errlog))
+    return(newpoints)
 
 
 # ==============================================================================

@@ -203,16 +203,17 @@ def flow_accumulation(outgrid, dem, method=0, unit=0, sinkroute=None,
 
 
 def upslope_area(output, points, dem, sinkroute=None, field=None,
-                 method=0, converge=1.1):
+                 method=0, converge=1.1, single_area=False):
     """
     Delimitation of the upslope contributing area for a point or a cloud of points
 
     library: ta_hydrology  tool: 4
 
     INPUTS
-     output      [string] output grid of uslope area. It more than 1 point is
-                  input, output is used as a base name for the construction
-                  of each output grid (.sgrd)
+     output      [string] output grid of upslope area. When single_area is True, only
+                  a single grid is returned. When single_area is False and more than
+                  one point is input, multiple grids are returned and output is used
+                  as a base name (.sgrd)
      points      [list,array,string] input points. Input points can be a [x,y]
                   list, tuple or array for a single point. For multiple points
                   insert a [[x1,y1], [x2,y2],..,[xn,yn]] list/tuple/array.
@@ -228,6 +229,10 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
                   [1] Deterministic Infinity
                   [2] Multiple Flow Direction
      converge    [int,float] threshold value for method=2
+     single_area [bool] if True, a single area is returned combining all
+                  upslope areas for input points. In other case, upslope
+                  area for each grid is returned. If True points must be
+                  a shapefile
     """
     # Check inputs
     output = _validation.output_file(output, 'grid')
@@ -239,68 +244,86 @@ def upslope_area(output, points, dem, sinkroute=None, field=None,
     # Check parameters
     method = _validation.input_parameter(method, 0, vrange=[0, 2], dtypes=[int])
     converge = str(converge)
-    # Create cmd incomplete
-    cmd = ['saga_cmd', 'ta_hydrology', '4', '-ELEVATION', dem, '-SINKROUTE',
-           sinkroute, '-METHOD', method, '-CONVERGE', converge]
-    # Check points and create output names
-    path = _os.path.dirname(output)
-    base = _os.path.basename(output).split('.')[0]
-    if type(points) in [list, tuple, _np.ndarray]:  # points is a list of a point
-        points = _np.array(points, dtype=_np.float32)
-        if points.ndim == 1 and points.size == 2:
-            output = _validation.output_file(output, 'grid')
-            x, y = str(points[0]), str(points[1])
-            # run command
-            cmd.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
+
+    if single_area:  # single upslope area
+        if type(points) is str:
+            # Check points shapefile
+            points = _files.default_file_ext(points, 'vector')
+            # Temporal grid points
+            temporal_grid = _files.create_filename(_env.workdir, 'sgrd', 'points_temporal')
+            _grids.shapes_to_grid(temporal_grid, points, grid_extent=dem)
+            # Create cmd
+            cmd = ['saga_cmd', 'ta_hydrology', '4', '-ELEVATION', dem, '-SINKROUTE',
+                   sinkroute, '-METHOD', method, '-CONVERGE', converge, '-AREA',
+                   output, '-TARGET', temporal_grid]
             flag = _env.run_command_logged(cmd)
-        elif points.ndim == 2 and points.shape[1] == 2:  # points is a list of points
-            for i in range(points.shape[0]):
-                output = _os.path.join(path, base + '_' + str(i) + '.sgrd')
-                x, y = str(points[i][0]), str(points[i][1])
+            # Check if output grid has crs file
+            _validation.validate_crs(dem, [output])
+
+        else:
+            raise TypeError('points must be a shapefile!')
+
+    else:            # multiple upslope areas
+        # Create cmd incomplete
+        cmd = ['saga_cmd', 'ta_hydrology', '4', '-ELEVATION', dem, '-SINKROUTE',
+               sinkroute, '-METHOD', method, '-CONVERGE', converge]
+        # Check points and create output names
+        path = _os.path.dirname(output)
+        base = _os.path.basename(output).split('.')[0]
+        if type(points) in [list, tuple, _np.ndarray]:  # points is a list of a point
+            points = _np.array(points, dtype=_np.float32)
+            if points.ndim == 1 and points.size == 2:
+                output = _validation.output_file(output, 'grid')
+                x, y = str(points[0]), str(points[1])
                 # run command
-                cmdf = _deepcopy(cmd)
-                cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
-                flag = _env.run_command_logged(cmdf)
+                cmd.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
+                flag = _env.run_command_logged(cmd)
+            elif points.ndim == 2 and points.shape[1] == 2:  # points is a list of points
+                for i in range(points.shape[0]):
+                    output = _os.path.join(path, base + '_' + str(i) + '.sgrd')
+                    x, y = str(points[i][0]), str(points[i][1])
+                    # run command
+                    cmdf = _deepcopy(cmd)
+                    cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
+                    flag = _env.run_command_logged(cmdf)
+            else:
+                raise TypeError('Wrong input points argument!')
+        elif type(points) is str:  # points is a shapefile
+            points = _files.default_file_ext(points, 'vector')
+            layer = _shp.Reader(points, 'r')
+            if layer.shapeType == 1:  # verify if shapefiles is a point type goemetry
+                shapes = layer.shapes()
+                nshapes = len(shapes)  # number of shapes
+                # get atribute field name
+                table = _tables.get_attribute_table(points)  # get attribute table
+                if field is not None:  # look for a field
+                    if type(field) is int:
+                        columns = table.columns
+                        field = columns[field]
+                    labels = table[field].values
+                    labels = [str(label) for label in labels]
+
+                if field is None:  # field is None, create
+                    labels = [str(label) for label in range(nshapes)]
+
+                # iterate over shapes
+                for i in range(nshapes):
+                    output = _os.path.join(path, base + '_' + labels[i] + '.sgrd')
+                    x, y = str(shapes[i].points[0][0]), str(shapes[i].points[0][1])
+                    # run command
+                    cmdf = _deepcopy(cmd)
+                    cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
+                    flag = _env.run_command_logged(cmdf)
+
+            else:
+                layer = None  # close shape connection
+                raise TypeError('The shape file is not a point type!')
+
+            layer = None  # close shape connection
+
         else:
             raise TypeError('Wrong input points argument!')
-    elif type(points) is str:  # points is a shapefile
-        points = _files.default_file_ext(points, 'vector')
-        layer = _shp.Reader(points, 'r')
-        if layer.shapeType == 1:  # verify if shapefiles is a point type goemetry
-            shapes = layer.shapes()
-            nshapes = len(shapes)  # number of shapes
-            # get atribute field name
-            table = _tables.get_attribute_table(points)  # get attribute table
-            if field is not None:  # look for a field
-                if type(field) is int:
-                    columns = table.columns
-                    field = columns[field]
-                labels = table[field].values
-                labels = [str(label) for label in labels]
 
-            if field is None:  # field is None, create
-                labels = [str(label) for label in range(nshapes)]
-
-            # iterate over shapes
-            for i in range(nshapes):
-                output = _os.path.join(path, base + '_' + labels[i] + '.sgrd')
-                x, y = str(shapes[i].points[0][0]), str(shapes[i].points[0][1])
-                # run command
-                cmdf = _deepcopy(cmd)
-                cmdf.extend(['-AREA', output, '-TARGET_PT_X', x, '-TARGET_PT_Y', y])
-                flag = _env.run_command_logged(cmdf)
-
-        else:
-            layer = None  # close shape connection
-            raise TypeError('The shape file is not a point type!')
-
-        layer = None  # close shape connection
-
-    else:
-        raise TypeError('Wrong input points argument!')
-
-    # Check if output grid has crs file
-    _validation.validate_crs(dem, [output])
     if not flag:
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
                                                   f_code.co_name, _env.errlog))

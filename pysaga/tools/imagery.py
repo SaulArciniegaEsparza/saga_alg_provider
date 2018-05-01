@@ -293,8 +293,49 @@ def maximum_entropy_classification(out_classes, out_prob, training, field=0, gri
 # ==============================================================================
 
 
-def opencv_boosting_classification():
-    pass
+def opencv_boosting_classification(out_classes, grids, training, field=0, normalize=False, method=1,
+                                   max_depth=10, min_samples=2, max_categrs=10, use_rule=True,
+                                   trunc_pruned=True, reg_acc=0.01, weak_count=100, trim_rate=0.95):
+    """
+    Compares two classified grids and creates a confusion matrix and derived coefficients
+    as well as the combinations of both classifications as new grid.
+
+    library: imagery_classification  tool: 2
+
+    INPUTS
+     combined        [string] output confused grid that combine both input grids
+    """
+    # Inputs and outputs
+    out_classes = _validation.output_file(out_classes, 'grid')
+    training = _validation.output_file(training, 'vector')
+    if type(grids) in (list, tuple):
+        grids = _validation.input_file(grids, 'grid', False)
+        grids_list = ';'.join(grids)
+    else:
+        raise TypeError('grids must be a tuple or list. < {} > input'.format(type(grids_num)))
+    # Parameters
+    field, normalize = str(field), str(int(normalize))
+    use_rule, trunc_pruned = str(int(use_rule)), str(int(trunc_pruned))
+    method = _validation.input_parameter(method, 1, vrange=[0, 3], dtypes=[int])
+    max_depth = _validation.input_parameter(max_depth, 10, gt=1, dtypes=[int])
+    min_samples = _validation.input_parameter(min_samples, 2, gt=2, dtypes=[int])
+    max_categrs = _validation.input_parameter(max_categrs, 10, gt=1, dtypes=[int])
+    reg_acc = _validation.input_parameter(reg_acc, 0.01, gt=0, dtypes=[float])
+    weak_count = _validation.input_parameter(weak_count, 100, gt=0, dtypes=[int])
+    trim_rate = _validation.input_parameter(trim_rate, 0.95, vrange=[0, 1], dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_opencv', '9', '-CLASSES', out_classes,
+           '-FEATURES', grids_list, '-TRAIN_AREAS', training, '-TRAIN_CLASS',
+           field, '-NORMALIZE', normalize, '-BOOST_TYPE', method, '-MAX_DEPTH',
+           max_depth, '-MIN_SAMPLES', min_samples, '-MAX_CATEGRS', max_categrs,
+           '-1SE_RULE', use_rule, '-TRUNC_PRUNED', trunc_pruned, '-REG_ACCURACY',
+           reg_acc, '-WEAK_COUNT', weak_count, '-WGT_TRIM_RATE', trim_rate]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(grids[0], [out_classes])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def opencv_decision_tree_classification():
