@@ -28,7 +28,7 @@ _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 # Library: imagery_classification
 # ==============================================================================
 
-def supervised_clasification_grids(classes, grids, polygons, field=0, quality=None, statistics=None,
+def supervised_clasification_grids(classes, grids, training, field=0, quality=None, statistics=None,
                                    normalise=False, load_stats=None, method=2, dist=0., angle=0., prob=0.,
                                    relative_prob=True, wta_ops=None):
     """
@@ -39,11 +39,11 @@ def supervised_clasification_grids(classes, grids, polygons, field=0, quality=No
     INPUTS
      classes         [string] output classified grid
      grids           [list, tuple] grids to use for classification analysis
-     polygons        [string] input shapefile with training areas (polygons)
-     field           [string, int] training field name or index of input polygons.
-                      Selected column must contain class identifier as integers.
+     training        [string] input shapefile with training areas (polygons)
+     field           [string, int] training field name or index of input training
+                      Selected column must contain class identifier as integers
      quality         [string] optional output grid of distances or probabilities,
-                       depending of chosen method.
+                       depending of chosen method
      statistics      [string] optional output statistics file
      normalize       [bool] if True, grids value are normalized
      load_stats      [string] input statistics table
@@ -71,7 +71,7 @@ def supervised_clasification_grids(classes, grids, polygons, field=0, quality=No
     """
     # Inputs and outputs
     cluster = _validation.output_file(classes, 'grid')
-    polygons = _validation.input_file(polygons, 'vector', True)
+    training = _validation.input_file(training, 'vector', True)
     grids = _validation.input_file(grids, 'grid', False)
     grid_list = ';'.join(grids)
     # Optional inputs and outputs
@@ -101,7 +101,7 @@ def supervised_clasification_grids(classes, grids, polygons, field=0, quality=No
             options.append(str(0))
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'imagery_classification', '0', '-GRIDS', grid_list,
-           '-CLASSES', classes, '-QUALITY', quality, '-TRAINING', polygons,
+           '-CLASSES', classes, '-QUALITY', quality, '-TRAINING', training,
            '-TRAINING_CLASS', field, '-METHOD', method, '-THRESHOLD_DIST', dist,
            '-THRESHOLD_ANGLE', angle, '-THRESHOLD_PROB', prob, '-RELATIVE_PROB', relative_prob]
     if statistics is not None:
@@ -419,6 +419,167 @@ def maximum_entropy_prediction(prediction, probability, points, grids_num=None,
 # Library: imagery_opencv
 # ==============================================================================
 
+def opencv_morphological_filter(out_grid, in_grid, method=0, shape=0, radius=1,
+                                iterations=1):
+    """
+    Morphological Filter using OpenCV library
+
+    library: imagery_opencv  tool: 0
+
+    INPUTS
+     out_grid       [string] output filtered grid
+     in_grid        [string] input grid
+     method         [int] operation
+                     [0] dilation (default)
+                     [1] erosion
+                     [2] opening
+                     [3] closing
+                     [4] morpological gradient
+                     [5] top hat
+                     [6] black hat
+     shape          [int] element shape
+                     [0] ellipse (default)
+                     [1] rectangle
+                     [2] cross
+     radius         [int] cell radius
+     iterations     [int] number of iterations
+    """
+    # Inputs and outputs
+    out_grid = _validation.output_file(out_grid, 'grid')
+    in_grid = _validation.input_file(in_grid, 'grid', False)
+    # Parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 6], dtypes=[int])
+    shape = _validation.input_parameter(shape, 0, vrange=[0, 2], dtypes=[int])
+    radius = _validation.input_parameter(radius, 1, gt=0, dtypes=[int])
+    iterations = _validation.input_parameter(iterations, 1, gt=0, dtypes=[int])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_opencv', '0', '-INPUT', in_grid, '-OUTPUT',
+           out_grid, '-TYPE', method, '-SHAPE', shape, '-RADIUS', radius,
+           '-ITERATIONS', iterations]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(in_grid, [out_grid])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
+def opencv_fourier_transform(out_real, out_imag, in_grid):
+    """
+    Fourier Transformation using OpenCV library
+
+    library: imagery_opencv  tool: 1
+
+    INPUTS
+     out_real       [string] output grid of fourier transformation (real)
+     out_imag       [string] output grid of fourier transformation (imaginary)
+     in_grid        [string] input grid
+    """
+    # Inputs and outputs
+    out_real = _validation.output_file(out_real, 'grid')
+    out_imag = _validation.output_file(out_imag, 'grid')
+    in_grid = _validation.input_file(in_grid, 'grid', False)
+    cmd = ['saga_cmd', '-f=q', 'imagery_opencv', '1', '-INPUT', in_grid,
+           '-REAL', out_real, '-IMAG', out_imag]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(in_grid, [out_real, out_imag])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
+def opencv_normal_bayes_classification(classes, probability, grids, training, field=0,
+                                       normalize=False):
+    """
+    Integration of the OpenCV Machine Learning library for Normal Bayes
+    classification of gridded features.
+
+    library: imagery_opencv  tool: 5
+
+    INPUTS
+     classes          [string] output grid of presence predictor
+     probability      [string] output grid of presence probability
+     grids            [tuple, list] grids to use for classification analysis
+     training         [string] input training areas shapefile
+     field            [int, string] training field name or index of input training
+     normalize        [bool] if True, input grids are normalized
+    """
+    # Inputs and outputs
+    classes = _validation.output_file(classes, 'grid')
+    probability = _validation.output_file(probability, 'grid')
+    training = _validation.input_file(training, 'vector', False)
+    if type(grids) in (list, tuple):
+        grids = _validation.input_file(grids, 'grid', False)
+        grids_list = ';'.join(grids)
+    else:
+        raise TypeError('grids must be a tuple or list. < {} > input'.format(type(grids)))
+    # Check parameters
+    field, normalize = str(field), str(int(normalize))
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_opencv', '5', '-FEATURES', grids_list,
+           '-NORMALIZE',  normalize, '-PROBABILITY', probability, '-TRAIN_AREAS',
+           training, '-TRAIN_CLASS', field, '-CLASSES', classes]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(training, [classes, probability])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
+def opencv_decision_tree_classification(out_classes, grids, training, field=0, normalize=False,
+                                        max_depth=10, min_samples=2, max_categrs=10, use_rule=True,
+                                        trunc_pruned=True, reg_acc=0.01):
+    """
+    Integration of the OpenCV Machine Learning library for Decision Tree
+    classification of gridded features.
+
+    library: imagery_opencv  tool: 8
+
+    INPUTS
+     out_classes       [string] output classified grid
+     grids             [tuple, list] input list of grids to classified
+     training          [string] training polygon areas as shapefile
+     field             [int, string] index of name of input classification field for
+                         training areas
+     normalize         [bool] if True, input grids are normalized
+     max_depth         [int] maximum tree depth
+     min_samples       [int] minimum sample count
+     max_categrs       [int] maximum number of categories
+     use_rule          [bool] if True (default), use 1SE rule
+     trunc_pruned      [bool] if True (default), truncate pruned trees
+     reg_acc           [float] regression accuracy
+    """
+    # Inputs and outputs
+    out_classes = _validation.output_file(out_classes, 'grid')
+    training = _validation.input_file(training, 'vector', False)
+    if type(grids) in (list, tuple):
+        grids = _validation.input_file(grids, 'grid', False)
+        grids_list = ';'.join(grids)
+    else:
+        raise TypeError('grids must be a tuple or list. < {} > input'.format(type(grids)))
+    # Parameters
+    field, normalize = str(field), str(int(normalize))
+    use_rule, trunc_pruned = str(int(use_rule)), str(int(trunc_pruned))
+    max_depth = _validation.input_parameter(max_depth, 10, gt=1, dtypes=[int])
+    min_samples = _validation.input_parameter(min_samples, 2, gt=2, dtypes=[int])
+    max_categrs = _validation.input_parameter(max_categrs, 10, gt=1, dtypes=[int])
+    reg_acc = _validation.input_parameter(reg_acc, 0.01, gt=0, dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_opencv', '8', '-CLASSES', out_classes,
+           '-FEATURES', grids_list, '-TRAIN_AREAS', training, '-TRAIN_CLASS',
+           field, '-NORMALIZE', normalize, '-MAX_DEPTH', max_depth, '-MIN_SAMPLES',
+           min_samples, '-MAX_CATEGRS', max_categrs, '-1SE_RULE', use_rule,
+           '-TRUNC_PRUNED', trunc_pruned, '-REG_ACCURACY', reg_acc]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(training, [out_classes])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
 def opencv_boosting_classification(out_classes, grids, training, field=0, normalize=False, method=1,
                                    max_depth=10, min_samples=2, max_categrs=10, use_rule=True,
                                    trunc_pruned=True, reg_acc=0.01, weak_count=100, trim_rate=0.95):
@@ -451,12 +612,12 @@ def opencv_boosting_classification(out_classes, grids, training, field=0, normal
     """
     # Inputs and outputs
     out_classes = _validation.output_file(out_classes, 'grid')
-    training = _validation.output_file(training, 'vector')
+    training = _validation.input_file(training, 'vector', False)
     if type(grids) in (list, tuple):
         grids = _validation.input_file(grids, 'grid', False)
         grids_list = ';'.join(grids)
     else:
-        raise TypeError('grids must be a tuple or list. < {} > input'.format(type(grids_num)))
+        raise TypeError('grids must be a tuple or list. < {} > input'.format(type(grids)))
     # Parameters
     field, normalize = str(field), str(int(normalize))
     use_rule, trunc_pruned = str(int(use_rule)), str(int(trunc_pruned))
@@ -477,25 +638,9 @@ def opencv_boosting_classification(out_classes, grids, training, field=0, normal
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
-    _validation.validate_crs(grids[0], [out_classes])
+    _validation.validate_crs(training, [out_classes])
     if not flag:
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
-
-
-def opencv_decision_tree_classification():
-    pass
-
-
-def opencv_fourier_transform():
-    pass
-
-
-def opencv_normal_bayes_classification():
-    pass
-
-
-def opencv_morphological_filter():
-    pass
 
 
 # ==============================================================================
@@ -503,15 +648,54 @@ def opencv_morphological_filter():
 # ==============================================================================
 
 
-def enhanced_vegetation_index():
-    pass
+def enhanced_vegetation_index(evi, blue, red, nir, gain=2.5, l=1.0,
+                              cblue=7.5, cred=6.0):
+    """
+    Enhanced Vegetation Index (EVI) from Huete et al (2002)
+
+    library: imagery_tools  tool: 2
+
+    INPUTS
+        evi      [string] output evi grid
+        blue     [string] input blue reflectance grid
+        red      [string] input red reflectance grid
+        nir      [string] input nir reflectance grid
+        gain     [float] gain factor
+        l        [float] canopy background adjustment
+        cblue    [float] aerosol resistance coefficient (blue)
+        cred     [float] aerosol resistance coefficient (red)
+    """
+    # Inputs and outputs
+    evi = _validation.output_file(evi, 'grid')
+    blue = _validation.input_file(blue, 'grid', False)
+    red = _validation.input_file(red, 'grid', False)
+    nir = _validation.input_file(nir, 'grid', False)
+    # Parameters
+    gain = _validation.input_parameter(gain, 2.5, gt=0., dtypes=[float])
+    l = _validation.input_parameter(l, 1.0, gt=0., dtypes=[float])
+    cblue = _validation.input_parameter(cblue, 7.5, gt=0., dtypes=[float])
+    cred = _validation.input_parameter(cred, 6.0, gt=0., dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_tools', '2', '-BLUE', blue, '-RED', red,
+           '-NIR', nir, '-EVI', evi, '-GAIN', gain, '-L', l, '-CBLUE', cblue,
+           '-CRED', cred]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(blue, [evi])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def principle_components():
     pass
 
 
-def vegetation_index():
+def vegetation_index_db():
+    pass
+
+
+def vegetation_index_sb():
     pass
 
 

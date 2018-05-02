@@ -80,8 +80,8 @@
       <file leaf-file-name="imagery.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pysaga/tools/imagery.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="653">
-              <caret line="387" column="9" selection-start-line="387" selection-start-column="9" selection-end-line="387" selection-end-column="9" />
+            <state relative-caret-position="953">
+              <caret line="688" lean-forward="true" selection-start-line="688" selection-end-line="688" />
               <folding>
                 <element signature="e#275#293#0" expanded="true" />
               </folding>
@@ -690,8 +690,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pysaga/tools/imagery.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="653">
-          <caret line="387" column="9" selection-start-line="387" selection-start-column="9" selection-end-line="387" selection-end-column="9" />
+        <state relative-caret-position="953">
+          <caret line="688" lean-forward="true" selection-start-line="688" selection-end-line="688" />
           <folding>
             <element signature="e#275#293#0" expanded="true" />
           </folding>
