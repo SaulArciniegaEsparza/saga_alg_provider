@@ -17,7 +17,7 @@ import os as _os
 import numpy as _np
 from scipy.sparse.linalg import spsolve as _spsolve
 
-from methods import *
+from . import methods as _methods
 
 
 # ==============================================================================
@@ -98,7 +98,7 @@ def flow_path_distance(flowdir, dem=None, saveas=None,):
     X, Y = coors[:, 0], coors[:, 1]
 
     # Cells connectivity
-    Ind, Indc = cell_direction(Z1, pixels)
+    Ind, Indc = _methods.cell_direction(Z1, pixels)
 
     if method == 1:  # 3D distance
         dist = ((X[Ind] - X[Indc]) ** 2.0 + (Y[Ind] - Y[Indc]) ** 2.0 +
@@ -111,7 +111,7 @@ def flow_path_distance(flowdir, dem=None, saveas=None,):
 
     # Compute cell distances
     # Solve system   A * dist = distance
-    A = matrix_coefficients(Ind, Indc)
+    A = _methods.matrix_coefficients(Ind, Indc)
     distance = _spsolve(A, dist)  # problems with memory
     # distance = _lsqr(A, dist, iter_lim=100, atol=1e-10, btol=1e-10)[0]
     longitude = _np.full((r1, c1), -99999.0)
@@ -220,8 +220,8 @@ def concentration_time(flowdir, dem, distance, method=0, cell_acc=0,
     Dist2[_np.isnan(Dist2)] = 0
 
     # Cells connectivity
-    Ind, Indc = cell_direction(flowdir, pixels)
-    A = matrix_coefficients(Ind, Indc)
+    Ind, Indc = _methods.cell_direction(flowdir, pixels)
+    A = _methods.matrix_coefficients(Ind, Indc)
 
     # Get coordinates and distance between cells
     coors = flowdir.pixel2coor(pixels)

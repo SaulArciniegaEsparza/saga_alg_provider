@@ -1,11 +1,14 @@
+"""
+SAGA GIS algorithm provider
+Loads SAGA GIS tools
+"""
 
-
-import climate
-import grids
-import imagery
-import import_export
-import projection
-import shapes
-import tables
-import terrain_analysis
+from . import climate
+from . import grids
+from . import imagery
+from . import import_export
+from . import projection
+from . import shapes
+from . import tables
+from . import terrain_analysis
 

@@ -22,9 +22,9 @@ from copy import deepcopy as _deepcopy
 import shapefile as _shp
 import numpy as _np
 
-import tables as _tables
-import shapes as _shapes
-import grids as _grids
+from . import tables as _tables
+from . import shapes as _shapes
+from . import grids as _grids
 
 _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 

@@ -23,8 +23,8 @@ import numpy as _np
 import pandas as _pd
 import itertools as _itertools
 
-import projection as _projection
-from tables import get_attribute_table as _get_attribute_table
+from . import projection as _projection
+from .tables import get_attribute_table as _get_attribute_table
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type
@@ -1241,11 +1241,23 @@ def shapes_to_grid(outgrid, inshape, value_method=0, field=0, multiple_values=1,
                        [0] node
                        [1] cell (default)
      data_type        [int] preferred data type of output grid
-                       [0] Integer (1 byte)
-                       [1] Integer (2 byte)
-                       [2] Integer (4 byte)
-                       [3] Floating Point (4 byte) (default)
-                       [4] Floating Point (8 byte)
+                       For older versions of SAGA GIS
+                        [0] Integer (1 byte)
+                        [1] Integer (2 byte)
+                        [2] Integer (4 byte)
+                        [3] Floating Point (4 byte) (default)
+                        [4] Floating Point (8 byte)
+                       For new versions of SAGA GIS
+                        [0] 1 bit
+                        [1] 1 byte unsigned integer
+                        [2] 1 byte signed integer
+                        [3] 2 byte unsigned integer
+                        [4] 2 byte signed integer
+                        [5] 4 byte unsigned integer
+                        [6] 4 byte signed integer
+                        [7] 4 byte floating point
+                        [8] 8 byte floating point
+                        [9] same as attribute
      cellsize         [float] output grid cellsize. Only if grid_extent is None
      grid_extent      [string] input grid to take its grid system. In this case
                        cellsize is not considered
@@ -1262,7 +1274,7 @@ def shapes_to_grid(outgrid, inshape, value_method=0, field=0, multiple_values=1,
     multiple_values = _validation.input_parameter(multiple_values, 1, vrange=[0, 1], dtypes=[int])
     line_type = _validation.input_parameter(line_type, 1, vrange=[0, 1], dtypes=[int])
     poly_type = _validation.input_parameter(poly_type, 1, vrange=[0, 1], dtypes=[int])
-    data_type = _validation.input_parameter(data_type, 3, vrange=[0, 4], dtypes=[int])
+    data_type = _validation.input_parameter(data_type, 3, vrange=[0, 9], dtypes=[int])
     if type(field) in [int, str]:
         field = str(field)
     else:

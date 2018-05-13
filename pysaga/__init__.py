@@ -9,6 +9,7 @@ STRUCTURE:
     tools
         climate
         grids
+        imagery
         import_export
         projection
         shapes
@@ -32,11 +33,11 @@ Mexico City
 """
 
 # Import modules
-from _provider import SAGAEnvironment as _SAGAenv
-import data_manager
-import tools
-import user_tools
-import utilities
+from ._provider import SAGAEnvironment as _SAGAenv
+from . import data_manager
+from . import tools
+from . import user_tools
+from . import utilities
 
 # Define environment
 environment = _SAGAenv()

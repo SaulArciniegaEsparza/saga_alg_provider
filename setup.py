@@ -1,4 +1,9 @@
-from setuptools import setup
+"""
+SAGA GIS algorithm provider
+Installation file
+"""
+
+from setuptools import setup, find_packages
 
 setup(
     name='pysaga',
@@ -7,17 +12,16 @@ setup(
     author_email='zaul.ae@gmail.com',
     description='A SAGA GIS algorithm provider',
     license='BSD',
-    packages=['pysaga',
-              'pysaga/data_manager',
-              'pysaga/tools',
-              'pysaga/user_tools',
-              'pysaga/utilities'],
+    packages=find_packages(exclude=['build', 'dist', 'pysaga.egg-info']),
     classifiers=[
         'Development Status :: SAGA GIS algorithm provider',
         'Intended Audience :: Engineering software',
         'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules'],
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6'],
     install_requires=['numpy',
                       'scipy',
-                      'pandas']
+                      'pandas',
+                      'numba']
 )

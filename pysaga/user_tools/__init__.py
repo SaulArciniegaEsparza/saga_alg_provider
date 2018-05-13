@@ -3,6 +3,6 @@ SAGA GIS algorithm provider
 Loads user tools
 """
 
-import hydrology
-import methods
+from . import hydrology
+from . import methods
 

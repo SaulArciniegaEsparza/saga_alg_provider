@@ -21,8 +21,8 @@ import os as _os
 import pandas as _pd
 from collections import OrderedDict as _OrderedDict
 
-import projection as _projection
-import tables as _tables
+from . import projection as _projection
+from . import tables as _tables
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type
@@ -817,9 +817,9 @@ def add_polygon_attributes_to_points(outshape, points, polygons, fields=0):
         fields = [str(field) for field in fields]
         fields = ",".join(fields)
     else:
-        raise TypeError("Parameter fields must be a string, intenger or list/tuple")
+        raise TypeError("Parameter fields must be a string, integer or list/tuple")
     # Run command
-    cmd = ['saga_cmd', '-f=q', 'shapes_points', '10', '-OUTPUT', outshape, '-POINTS',
+    cmd = ['saga_cmd', '-f=q', 'shapes_points', '10', '-OUTPUT', outshape, '-INPUT',
            points, '-POLYGONS', polygons, '-FIELDS', fields]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file

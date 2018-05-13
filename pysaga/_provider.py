@@ -21,7 +21,7 @@ class SAGAEnvironment:
         """
 
         # Define attributes
-        self.ovwlog = True     # overwritten log files
+        self.ovwlog = True      # overwritten log files
         self.saga_version = ''  # saga version
         self.stdlog = ''        # register log file
         self.errlog = ''        # error log file
@@ -62,6 +62,11 @@ class SAGAEnvironment:
             cmd = ['saga_cmd', '--version']
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)  # run cmd
             text = p.communicate()[0]
+            try:
+                text = text.decode("utf-8")
+                text = text.replace('\r', '').replace('\n', '')
+            except:
+                pass
             print(text)  # print saga version
             try:
                 self.saga_version = text.split(':')[1].strip()[:5]
@@ -101,7 +106,8 @@ class SAGAEnvironment:
         if type(ovwlog) is bool:
             self.ovwlog = ovwlog
 
-    def print_commands(self, library=None, tool=None):
+    @staticmethod
+    def print_commands(library=None, tool=None):
         """
         Prints a list of SAGA GIS commands given a library name and tool id
         If no inputs are used, all libraries are printed.
@@ -169,7 +175,7 @@ class SAGAEnvironment:
         # Run command
         try:  # try to run
             subprocess.call(cmd, stdout=logstd, stderr=logerr)
-        except Exception, e:
+        except Exception as e:
             logstd = open(self.stdlog, "a")
             logerr = open(self.errlog, "a")
             logerr.write("Exception running: {} {}".format(cmd[2], cmd[3]))

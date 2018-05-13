@@ -4,5 +4,5 @@ Loads the SAGA objects, that offers more flexibility to
 create your own models
 """
 
-import grids
+from . import grids
 

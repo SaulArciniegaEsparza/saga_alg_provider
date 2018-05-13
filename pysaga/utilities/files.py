@@ -101,7 +101,7 @@ def default_file_ext(filename, ftype='grid', force=True):
     if not file_ext:
         force = True
     if force:
-        if defext.has_key(ftype):
+        if ftype in defext:
             output = _os.path.splitext(filename)[0] + defext[ftype]
         else:
             output = _os.path.splitext(filename)[0] + '.' + ftype
@@ -181,4 +181,3 @@ def file_list(folder, ext='sgrd', contains='', start='', ends=''):
                 (basename.startswith(start)) and (basename.endswith(ends))):
             filter_files.append(filename)
     return(filter_files)
-

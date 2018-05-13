@@ -3,6 +3,6 @@ SAGA GIS algorithm provider
 Loads utilities tools
 """
 
-import files
-import data_validation
+from . import files
+from . import data_validation
 

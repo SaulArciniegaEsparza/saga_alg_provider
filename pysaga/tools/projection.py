@@ -50,9 +50,7 @@ def crs_from_epsg(code, asproj4=False):
         crs = crs.ExportToProj4()
     else:
         crs = crs.ExportToWkt()
-    if not flag:
-        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
-                                                  f_code.co_name, _env.errlog))
+    return(crs)
 
 
 def reproject_points(points, in_crs, out_crs):

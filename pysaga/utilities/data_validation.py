@@ -6,7 +6,7 @@ Validation of input and output parameters
 import os as _os
 import shutil as _shutil
 
-import files as _files
+from . import files as _files
 
 
 # ==============================================================================
