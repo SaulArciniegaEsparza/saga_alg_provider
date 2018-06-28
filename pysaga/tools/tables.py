@@ -19,6 +19,8 @@ import pandas as _pd
 import numpy as _np
 import shapefile as _shp
 
+_Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
+_Serie = type(_pd.Series())     # get pandas Serie Type
 _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
 
@@ -96,23 +98,19 @@ def create_attribute_table(outable, intable):
     """
     # Check inputs
     auxfile = None
-    if type(intable) is _pd.DataFrame():
+    if type(intable) in (_Frame, _Serie):
         auxfile = 'auxiliar_table_file.csv'
         if _env.workdir is not None:
             auxfile = _os.path.join(_env.workdir, auxfile)
-        intable.to_csv(auxfile)
+        intable.to_csv(auxfile, index=False)
         intable = auxfile
     elif _os.path.splitext(intable)[1] not in ['.csv', '.txt', '.dbf']:
         raise IOError('Wrong file extension <{}>'.format(_os.path.splitext(intable)[1]))
     outable = _files.default_file_ext(outable, 'dbf')
     # Convert table
-    cmd = ['saga_cmd', '-f=q', 'table_tools', '2', '-INPUT', intable, '-OUTPUT', outable,
-           '-FIELD', '0']
+    cmd = ['saga_cmd', '-f=q', 'io_table', '1', '-TABLE', outable, '-FILENAME', intable,
+           '-SEPARATOR', '2']
     flag = _env.run_command_logged(cmd)
-    # delete aditional field
-    cmd = ['saga_cmd', '-f=q', 'table_tools', '11', '-TABLE', outable,
-           '-FIELDS', 'ENUM_ID', '-OUT_TABLE', outable]
-    _env.run_command_logged(cmd);
     # Delete temporal file
     if auxfile is not None:
         _os.remove(auxfile)

@@ -380,6 +380,48 @@ def clip_grid_with_rectangle(outgrid, ingrid, inshape, method=0):
                                                   f_code.co_name, _env.errlog))
 
 
+def gradient_vectors_from_surface(outshape, ingrid, step=1, size_min=25, size_max=100,
+                                  aggr=1, style=2):
+    """
+    Create a vector file with lines indicating the grid gradient.
+
+    library: shapes_grid  tool: 15
+
+    INPUT
+     outshape   [string] output gradient shapefile
+     ingrid     [string] input grid
+     step       [int] number of cells to consider. If step is higher, arrows are bigger
+     size_min   [int] minimum size as percentage of step
+     size_max   [int] maximum size as percentage of step
+     aggr       [int] how to request values if step size is more than one cell
+                 [0] nearest neighbour
+                 [1] mean value (default)
+     style      [int]
+                 [0] simple line
+                 [1] arrow
+                 [2] arrow (centered to cell) (default)
+    """
+    # Check inputs
+    outshape = _validation.output_file(outshape, 'vector')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Check parameters
+    step = _validation.input_parameter(step, 1, gt=1, dtypes=[int])
+    aggr = _validation.input_parameter(aggr, 1, vrange=[0, 1], dtypes=[int])
+    style = _validation.input_parameter(style, 2, vrange=[0, 2], dtypes=[int])
+    size_min, size_max = str(size_min), str(size_max)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'shapes_grid', '15', '-SURFACE', ingrid,
+           '-VECTORS', outshape, '-STEP', step, '-SIZE_MIN', size_min,
+           '-SIZE_MAX', size_max, '-AGGR', aggr, '-STYLE', style]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
 # ==============================================================================
 # Library: shapes_lines
 # ==============================================================================
