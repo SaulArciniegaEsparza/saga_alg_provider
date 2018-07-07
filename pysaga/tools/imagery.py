@@ -687,8 +687,42 @@ def enhanced_vegetation_index(evi, blue, red, nir, gain=2.5, l=1.0,
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def principle_components():
-    pass
+def principle_components(outgrids, pan, grids, method=1, resampling=2, pan_match=1):
+    """
+    Principle components based image sharpening.
+
+    library: imagery_tools  tool: 7
+
+    INPUTS
+        evi      [string]
+    """
+    # Inputs and outputs
+    pan = _validation.input_file(pan, 'grid', False)
+    if type(outgrids) in (list, tuple):
+        outgrids = [_validation.output_file(name, 'grid') for name in outgrids]
+        outgrids_list = ",".join(outgrids)
+    else:
+        raise TypeError('outgrids must be a tuple/list of files')
+    if type(grids) in (list, tuple):
+        grids = [_validation.output_file(name, 'grid') for name in grids]
+        grids_list = ",".join(grids)
+    else:
+        raise TypeError('grids must be a tuple/list of files')
+
+    # Validate parameters
+    method = _validation.input_parameter(method, 1, vrange=[0, 2], dtypes=[int])
+    resampling = _validation.input_parameter(resampling, 2, vrange=[0, 2], dtypes=[int])
+    pan_match = _validation.input_parameter(pan_match, 2, vrange=[0, 1], dtypes=[int])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_tools', '7', '-GRIDS', grids_list, '-PAN', pan,
+           '-SHARPEN', outgrids_list, '-RESAMPLING', resampling, '-PAN_MATCH', pan_match, '-METHOD', method]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(pan, outgrids)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
 def vegetation_index_db():

@@ -34,8 +34,7 @@ _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 # ==============================================================================
 
 
-def grid_values_to_points(outpoints, points, grid, method=0,
-                          delete_old=False, field_id=None):
+def grid_values_to_points(outpoints, points, grid, method=0):
     """
     Add grid values to points
 
@@ -50,8 +49,6 @@ def grid_values_to_points(outpoints, points, grid, method=0,
                     [1] Bilinear Interpolation
                     [2] Bicubic Spline Interpolation
                     [3] B-Spline Interpolation
-     delete_old    [boolean] if is True, fields of original shape are deleted
-     field_id      [int, string] field of the points index
     """
     # Check inputs
     outpoints = _validation.output_file(outpoints, 'vector')
@@ -69,16 +66,6 @@ def grid_values_to_points(outpoints, points, grid, method=0,
            grid, '-RESULT', outpoints, '-RESAMPLING', method]
     # Run command
     flag = _env.run_command_logged(cmd)
-    # Delete fields?
-    if delete_old:
-        table = _tables.get_attribute_table(points)
-        fields = table.columns.tolist()
-        if field_id is not None:
-            if type(field_id) is str:
-                fields.delete(field_id)
-            elif type(field_id) is int:
-                del(fields[field_id])
-        flag = _tables.delete_fields(outpoints, outpoints, fields)
 
     # Check if output grid has crs file
     _validation.validate_crs(points, [outpoints])
@@ -87,11 +74,8 @@ def grid_values_to_points(outpoints, points, grid, method=0,
                                                   f_code.co_name, _env.errlog))
 
 
-def grid_statistics_for_polygons(outshape, polygons, grid, method=0,
-                                 naming=1, delete_old=False, field_id=None,
-                                 paralel=False, Mean=False, Min=True, Max=True,
-                                 Sum=False, Count=False, Range=False, Var=False,
-                                 Std=False, Quantile=0):
+def grid_statistics_for_polygons(outshape, polygons, grid, method=0, naming=1,
+                                 parallel=False, stats='Mean', quantile=0):
     """
     Zonal grid statistics. For each polygon statistics based on all
     covered grid cells will be calculated
@@ -99,22 +83,23 @@ def grid_statistics_for_polygons(outshape, polygons, grid, method=0,
     library: shapes_grid  tool: 2
 
     INPUTS:
-     outshape      [string] output point shape with grid values
-     polygons      [string] input point shape
+     outshape      [string] output polygon shape with grid statistics
+     polygons      [string] input polygons shape file
      grid          [string, list] grid of list of grids for extract values
      method        [int] method for compute the polygon's statistics
                     [0] simple and fast (default)
                     [1] polygon wise (cell centers)
                     [2] polygon wise (cell area)
                     [3] polygon wise (cell area weighted)
-     delete_old    [boolean] if is True, fields of original shape are deleted
-     field_id      [int, string] field index of the original shape. By default
-                    field_id is no considered
-     paralel       [boolean] use multiple cores. By default False
-     Available statistics and its default value: Mean (True), Min (True), Max (True)
-                    Sum (False), Count (False), Range (False), Var (False),
-                    Std (False), Quantile (by default 0 <not calculated>,
-                    minimum:0, maximum: 50)
+     naming        [int] field naming for statistics
+                    [0] grid number
+                    [1] grid name (default)
+     parallel      [boolean] use multiple cores. By default False
+     stats         [str, list, tuple] statistic or list of statistics to compute
+                    Valid statistics are: 'mean' (default), 'min', 'max', 'range', 'count',
+                    'var', 'std'
+     quantile       [int, float] quantile value to compute. If zero (default)
+                     then quantile is not computed
     """
 
     # Check inputs
@@ -130,29 +115,30 @@ def grid_statistics_for_polygons(outshape, polygons, grid, method=0,
     # methods
     naming = _validation.input_parameter(naming, 1, vrange=[0, 1], dtypes=[int])
     method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
-    Mean, Min, Max = str(int(Mean)), str(int(Min)), str(int(Max))
-    Sum, Count, Range = str(int(Sum)), str(int(Count)), str(int(Range))
-    Var, Std = str(int(Var)), str(int(Std))
-    Quantile = str(Quantile)
-    paralel = str(int(paralel))
+    quantile = str(quantile)
+    parallel = str(int(parallel))
+    # Check statistic
+    if type(stats) == str:
+        stats = [stats]
+    elif type(stats) not in (tuple, list):
+        raise TypeError('Input stats parameter must be a list/tuple or a string')
+    stats_names = ['MEAN', 'COUNT', 'SUM', 'MIN', 'MAX', 'VAR', 'STD', 'RANGE']
+    stats_list = ['MEAN', 'COUNT', 'SUM', 'MIN', 'MAX', 'VAR', 'STDDEV', 'RANGE']
+    default_stats = dict.fromkeys(stats_list, '0')
+    for key in stats:
+        if key.upper() in stats_names:
+            default_stats[stats_list[stats_names.index(key.upper())]] = '1'
+        else:
+            raise ValueError('Statistic {} is not available!'.format(key))
+
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_grid', '2', '-GRIDS', grid, '-POLYGONS',
            polygons, '-RESULT', outshape, '-NAMING', naming, '-METHOD', method,
-           '-COUNT', Count, '-MIN', Min, '-MAX', Max, '-RANGE', Range, '-SUM',
-           Sum, '-MEAN', Mean, '-VAR', Var, '-STDDEV', Std, '-QUANTILE',
-           Quantile, '-PARALLELIZED', paralel]
+           '-QUANTILE', quantile, '-PARALLELIZED', parallel]
+    for key, value in default_stats.items():
+        cmd.extend(['-' + key, value])
     # Run command
     flag = _env.run_command_logged(cmd)
-    # Delete fields?
-    if delete_old:
-        table = _tables.get_attribute_table(polygons)
-        fields = table.columns.tolist()
-        if field_id is not None:
-            if type(field_id) is str:
-                fields.delete(field_id)
-            elif type(field_id) is int:
-                del (fields[field_id])
-        flag = _tables.delete_fields(outshape, outshape, fields)
 
     # Check if output grid has crs file
     _validation.validate_crs(polygons, [outshape])
@@ -293,6 +279,76 @@ def clip_grid_with_polygons(outgrid, ingrid, polygon, extent=2):
                                                   f_code.co_name, _env.errlog))
 
 
+def grid_statistics_for_points(outshape, points, grids, kernel_type=0,
+                               kernel_size=0, naming=1, stats='Mean', quantile=0):
+    """
+    For each given point statistics based on all grid cells in the defined
+    neighbourhood will be calculated
+
+    library: shapes_grid  tool: 8
+
+    INPUTS:
+     outshape      [string] output point shape with grid statistics
+     points        [string] input point shape file
+     grids         [string, list] grid of list of grids for extract values
+     kernel_type   [int] shape of the points kernel
+                    [0] square (default)
+                    [1] circle
+     kernel_size   [int] kernel size defined as radius number of cells. By default 1
+     naming        [int] field naming for statistics
+                    [0] grid number
+                    [1] grid name (default)
+     stats         [str, list, tuple] statistic or list of statistics to compute
+                    Valid statistics are: 'mean' (default), 'min', 'max', 'range', 'count',
+                    'var', 'std'
+     quantile       [int, float] quantile value to compute. If zero (default)
+                     then quantile is not computed
+    """
+
+    # Check inputs
+    outshape = _validation.output_file(outshape, 'vector')
+    points = _validation.input_file(points, 'vector', True)
+
+    if type(grids) is str:
+        grids = _validation.input_file(grids, 'grid', False)
+    elif type(grids) in [list, tuple]:
+        # join a list of grids
+        grids = _validation.input_file(grids, 'grid', False)
+        grids = ';'.join(grids)
+    # methods
+    naming = _validation.input_parameter(naming, 1, vrange=[0, 1], dtypes=[int])
+    kernel_type = _validation.input_parameter(kernel_type, 0, vrange=[0, 1], dtypes=[int])
+    kernel_size = _validation.input_parameter(kernel_size, 1, gt=1, dtypes=[int])
+    quantile = str(quantile)
+    # Check statistic
+    if type(stats) == str:
+        stats = [stats]
+    elif type(stats) not in (tuple, list):
+        raise TypeError('Input stats parameter must be a list/tuple or a string')
+    stats_names = ['MEAN', 'COUNT', 'SUM', 'MIN', 'MAX', 'VAR', 'STD', 'RANGE']
+    stats_list = ['MEAN', 'COUNT', 'SUM', 'MIN', 'MAX', 'VAR', 'STDDEV', 'RANGE']
+    default_stats = dict.fromkeys(stats_list, '0')
+    for key in stats:
+        if key.upper() in stats_names:
+            default_stats[stats_list[stats_names.index(key.upper())]] = '1'
+        else:
+            raise ValueError('Statistic {} is not available!'.format(key))
+
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'shapes_grid', '8', '-GRIDS', grids, '-POINTS',
+           points, '-RESULT', outshape, '-NAMING', naming, '-KERNEL_TYPE', kernel_type,
+           '-KERNEL_SIZE', kernel_size, '-QUANTILE', quantile]
+    for key, value in default_stats.items():
+        cmd.extend(['-' + key, value])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(points, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
 def grid_system_extent(outshape, grid_system, method=0, proj=None, proj_file=None):
     """
     Creates a polygon (rectangle) from a grid system's extent
@@ -421,6 +477,50 @@ def gradient_vectors_from_surface(outshape, ingrid, step=1, size_min=25, size_ma
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
                                                   f_code.co_name, _env.errlog))
 
+
+def gradient_vectors_from_components(outshape, gridx, gridy, step=1, size_min=25,
+                                     size_max=100, aggr=1, style=2):
+    """
+    Create a vector file with lines indicating the grid gradient
+    using x and y components
+
+    library: shapes_grid  tool: 15
+
+    INPUT
+     outshape   [string] output gradient shapefile
+     gridx      [string] input x component grid
+     gridy      [string] input y component grid
+     step       [int] number of cells to consider. If step is higher, arrows are bigger
+     size_min   [int] minimum size as percentage of step
+     size_max   [int] maximum size as percentage of step
+     aggr       [int] how to request values if step size is more than one cell
+                 [0] nearest neighbour
+                 [1] mean value (default)
+     style      [int]
+                 [0] simple line
+                 [1] arrow
+                 [2] arrow (centered to cell) (default)
+    """
+    # Check inputs
+    outshape = _validation.output_file(outshape, 'vector')
+    gridx = _validation.input_file(gridx, 'grid', False)
+    gridy = _validation.input_file(gridy, 'grid', False)
+    # Check parameters
+    step = _validation.input_parameter(step, 1, gt=1, dtypes=[int])
+    aggr = _validation.input_parameter(aggr, 1, vrange=[0, 1], dtypes=[int])
+    style = _validation.input_parameter(style, 2, vrange=[0, 2], dtypes=[int])
+    size_min, size_max = str(size_min), str(size_max)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'shapes_grid', '17', '-X', gridx, '-Y', gridy,
+           '-VECTORS', outshape, '-STEP', step, '-SIZE_MIN', size_min,
+           '-SIZE_MAX', size_max, '-AGGR', aggr, '-STYLE', style]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, [outshape])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
 
 # ==============================================================================
 # Library: shapes_lines
@@ -1069,8 +1169,7 @@ def polygon_centroids(outshape, inshape, parts=False):
 
 
 def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
-                                  field_names=1, Mean=True, Sum=False, Var=False,
-                                  Std=False, Min=False, Max=False, Count=False):
+                                  field_names=1, stats='Mean'):
     """
     Calculates statistics over all points falling in a polygon
 
@@ -1088,9 +1187,9 @@ def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
                        [1] original name + variable type (X_SUM)
                        [2] original name (X)
                        [3] variable type (SUM)
-    available statistics (and their default values): mean (Mean=True), sum (Sum=False),
-     variance (Var=False), standard deviation (Std=False), minimum (Min=False),
-     maximum (Max=False), count points (Count=False)
+     stats           [str, list, tuple] statistic or list of statistics to compute
+                      Valid statistics are: 'mean' (default), 'min', 'max', 'count',
+                      'var', 'std'
     """
     # Check inputs
     outpolygons = _validation.output_file(outpolygons, 'vector')
@@ -1105,16 +1204,27 @@ def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
     else:
         raise TypeError('Bad fields paramter type <{}>'.format(str(type(fields))))
     # convert to strings
-    Mean, Sum, Var, Std = str(int(Mean)), str(int(Sum)), str(int(Var)), str(int(Std))
-    Min, Max, Count = str(int(Min)), str(int(Max)), str(int(Count))
     if field_names < 0 or field_names > 3:
         field_names = 1  # default value
     names = str(field_names)
+    # Check statistic
+    if type(stats) == str:
+        stats = [stats]
+    elif type(stats) not in (tuple, list):
+        raise TypeError('Input stats parameter must be a list/tuple or a string')
+    stats_names = ['MEAN', 'COUNT', 'SUM', 'MIN', 'MAX', 'VAR', 'STD']
+    stats_list = ['AVG', 'NUM', 'SUM', 'MIN', 'MAX', 'VAR', 'DEV']
+    default_stats = dict.fromkeys(stats_list, '0')
+    for key in stats:
+        if key.upper() in stats_names:
+            default_stats[stats_list[stats_names.index(key.upper())]] = '1'
+        else:
+            raise ValueError('Statistic {} is not available!'.format(key))
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '4', '-POINTS', points, '-POLYGONS', polygons,
-           '-STATISTICS', outpolygons, '-FIELDS', fields, '-SUM', Sum, '-AVG', Mean,
-           '-VAR', Var, '-DEV', Std, '-MIN', Min, '-MAX', Max, '-NUM', Count,
-           '-FIELD_NAME', names]
+           '-STATISTICS', outpolygons, '-FIELDS', fields, '-FIELD_NAME', names]
+    for key, value in default_stats.items():
+        cmd.extend(['-' + key, value])
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
@@ -1679,7 +1789,7 @@ def select_by_attributes(saveas, inshape, expression):
     cmd = ['saga_cmd', '-f=s', filename]
     # Run command
     flag = _env.run_command_logged(cmd)
-    # Delete auxiliar data
+    # Delete temporal data
     _os.remove(filename)
     _tables.delete_fields(inshape, inshape, fields='COND')
     # Check if output grid has crs file
@@ -1744,7 +1854,7 @@ def select_by_location(saveas, inshape, locations, intersect=False,
     cmd = ['saga_cmd', '-f=s', filename]
     # Run command
     flag = _env.run_command_logged(cmd)
-    # Delete auxiliar data
+    # Delete temporal data
     _os.remove(filename)
     # Check if output grid has crs file
     if not _files.has_crs_file(saveas):  # set first input layer crs
