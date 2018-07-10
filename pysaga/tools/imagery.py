@@ -1,12 +1,11 @@
 """
 SAGA GIS algorithm provider
-Grids tools:
-    grid_analysis
-    grid_calculus
-    grid_filter
-    grid_gridding
-    grid_spline
-    grid_tools
+Grid Imagery:
+    imagery_classification
+    imagery_maxent
+    imagery_opencv
+    imagery_tools
+    imagery_vigra
 
 
 Author:
@@ -647,6 +646,91 @@ def opencv_boosting_classification(out_classes, grids, training, field=0, normal
 # Library: imagery_tools
 # ==============================================================================
 
+def vegetation_index_db(basename, red, nir, intercept=0, slope=0.5):
+    """
+    Distance based vegetation indices.
+
+    library: imagery_tools  tool: 0
+
+    INPUTS
+        basename      [string] output basename file. Several outputs will be created:
+                        '_PVI0'   Perpendicular Vegetation Index (Richardson and Wiegand, 1977)
+                        '_PVI1'   Perpendicular Vegetation Index (Perry and Lautenschlager, 1984)
+                        '_PVI2'   Perpendicular Vegetation Index (Walther and Shabaani)
+                        '_PVI3'   Perpendicular Vegetation Index (Qi, et al., 1994)
+                        '_TSAVI'  Transformed Soil Adjusted Vegetation Index (Baret et al. 1989)
+                        '_ATSAVI' Transformed Soil Adjusted Vegetation Index (Baret and Guyot, 1991)
+        red           [string] red reflectance input grid
+        nir           [string] near infrared reflectance input grid
+        intercept     [float] intercept of soil line
+        slope         [float] slope of soil line
+    """
+    # Inputs and outputs
+    var_ext = ['PVI0', 'PVI1', 'PVI2', 'PVI3', 'TSAVI', 'ATSAVI']
+    outgrids = [_validation.output_file(basename + '_' + fext, 'grid') for fext in var_ext]
+
+    red = _validation.input_file(red, 'grid', False)
+    nir = _validation.input_file(nir, 'grid', False)
+    # Validate parameters
+    intercept, slope = str(intercept), str(slope)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_tools', '0', '-RED', red, '-NIR', nir,
+           '-INTERCEPT', intercept, '-SLOPE', slope]
+    for i, key in enumerate(var_ext):
+        cmd.extend(['-' + key, outgrids[i]])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(red, outgrids)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
+def vegetation_index_sb(basename, red, nir, factor=0.5):
+    """
+    Slope based vegetation indices.
+
+    library: imagery_tools  tool: 1
+
+    INPUTS
+        basename      [string] output basename file. Several outputs will be created:
+                        '_DVI'  Difference Vegetation Index DVI = NIR - R
+                        '_NDVI' Normalized Difference Vegetation Index NDVI = (NIR - R) / (NIR + R)
+                        '_RVI'  Ratio Vegetation Index RVI = R / NIR
+                        '_NRVI' Normalized Ratio Vegetation Index NRVI = (RVI - 1) / (RVI + 1)
+                        '_TVI'  Transformed Vegetation Index TVI = [(NIR - R) / (NIR + R) + 0.5]^0.5
+                        '_CTVI' Corrected Transformed Ratio Vegetation Index
+                                CTVI = [(NDVI + 0.5) / abs(NDVI + 0.5)] * [abs(NDVI + 0.5)]^0.5
+                        '_TTVI' Thiam's Transformed Vegetation Index RVI = [abs(NDVI) + 0.5]^0.5
+                        '_SAVI' Soil Adjusted Vegetation Index SAVI = [(NIR - R) / (NIR + R)] * (1 + S)
+        red           [string] red reflectance input grid
+        nir           [string] near infrared reflectance input grid
+        factor        [float] Soil adjustment factor for SAVI calculation.
+                              Suggested values are 1.0 in case of very low vegetation,
+                              0.5 for intermediate 0.5, and 0.25 for high densities (Silleos et al. 2006).
+    """
+    # Inputs and outputs
+    var_ext = ['DVI', 'NDVI', 'RVI', 'NRVI', 'TVI', 'CTVI', 'TTVI', 'SAVI']
+    outgrids = [_validation.output_file(basename + '_' + fext, 'grid') for fext in var_ext]
+
+    red = _validation.input_file(red, 'grid', False)
+    nir = _validation.input_file(nir, 'grid', False)
+    # Validate parameters
+    factor = _validation.input_parameter(factor, 0.5, vrange=[0, 1], dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_tools', '1', '-RED', red, '-NIR', nir,
+           '-SOIL', factor]
+    for i, key in enumerate(var_ext):
+        cmd.extend(['-' + key, outgrids[i]])
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(red, outgrids)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
 
 def enhanced_vegetation_index(evi, blue, red, nir, gain=2.5, l=1.0,
                               cblue=7.5, cred=6.0):
@@ -687,6 +771,59 @@ def enhanced_vegetation_index(evi, blue, red, nir, gain=2.5, l=1.0,
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
+def ihs_sharpening(out_red, out_green, out_blue, in_red, in_green, in_blue, pan,
+                   resampling=2, pan_match=0):
+    """
+    Intensity, hue, saturation (IHS) sharpening.
+
+    library: imagery_tools  tool: 4
+
+    INPUTS
+        out_red       [string] output sharped red reflectance grid
+        out_green     [string] output sharped green reflectance grid
+        out_blue      [string] output sharped blue reflectance grid
+        in_red        [string] input red reflectance grid
+        in_green      [string] input green reflectance grid
+        in_blue       [string] input blue reflectance grid
+        pan           [string, list, tuple] input panchromatic channel grid or list of grids
+        resampling    [int] resampling method
+                       [0] nearest neighbour
+                       [1] bilinear
+                       [2] cubic convolution (default)
+        pan_match     [int] panchromatic channel matching method
+                       [0] normalized (default)
+                       [1] standardized
+    """
+    # Inputs and outputs
+    out_red = _validation.output_file(out_red, 'grid')
+    out_green = _validation.output_file(out_green, 'grid')
+    out_blue = _validation.output_file(out_blue, 'grid')
+    in_red = _validation.input_file(in_red, 'grid', False)
+    in_green = _validation.input_file(in_green, 'grid', False)
+    in_blue = _validation.input_file(in_blue, 'grid', False)
+    if type(pan) is str:
+        pan_list = _validation.input_file(pan, 'grid', False)
+    elif type(pan) in (list, tuple):
+        pan = [_validation.input_file(name, 'grid', False) for name in pan]
+        pan_list = ",".join(pan)
+    else:
+        raise TypeError('pan must be a string file name or tuple/list of files')
+    # Validate parameters
+    resampling = _validation.input_parameter(resampling, 2, vrange=[0, 2], dtypes=[int])
+    pan_match = _validation.input_parameter(pan_match, 0.1, vrange=[0, 1], dtypes=[float])
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '4', '-R', in_red, '-G', in_green, '-B', in_blue,
+           '-PAN', pan_list, '-R_SHARP', out_red, '-G_SHARP', out_green, '-B_SHARP', out_blue,
+           '-RESAMPLING', resampling, '-PAN_MATCH', pan_match]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(in_red, [out_blue, out_green, out_red])
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
+
+
 def principle_components(outgrids, pan, grids, method=1, resampling=2, pan_match=1):
     """
     Principle components based image sharpening.
@@ -694,7 +831,20 @@ def principle_components(outgrids, pan, grids, method=1, resampling=2, pan_match
     library: imagery_tools  tool: 7
 
     INPUTS
-        evi      [string]
+        outgrids      [list, tuple] name of the output grids, one for each input grid
+        pan           [string] panchromatic channel input grid
+        grids         [list, tuple] name of input grids
+        method        [int] principle components method
+                       [0] correlation matrix
+                       [1] variance-covariance matrix (default)
+                       [2] sums-of-squares-and-cross-products matrix
+        resampling    [int] resampling method
+                       [0] nearest neighbour
+                       [1] bilinear
+                       [2] cubic convolution (default)
+        pan_match     [int] panchromatic channel matching method
+                       [0] normalized
+                       [1] standardized (default)
     """
     # Inputs and outputs
     pan = _validation.input_file(pan, 'grid', False)
@@ -708,7 +858,8 @@ def principle_components(outgrids, pan, grids, method=1, resampling=2, pan_match
         grids_list = ",".join(grids)
     else:
         raise TypeError('grids must be a tuple/list of files')
-
+    if len(outgrids_list) != len(grids_list):
+        raise ValueError('outgrids and grids must have the same length!')
     # Validate parameters
     method = _validation.input_parameter(method, 1, vrange=[0, 2], dtypes=[int])
     resampling = _validation.input_parameter(resampling, 2, vrange=[0, 2], dtypes=[int])
@@ -725,39 +876,210 @@ def principle_components(outgrids, pan, grids, method=1, resampling=2, pan_match
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vegetation_index_db():
-    pass
-
-
-def vegetation_index_sb():
-    pass
-
-
 # ==============================================================================
 # Library: imagery_vigra
 # ==============================================================================
 
-def vigra_edge_detection():
-    pass
+def vigra_smoothing(outgrid, ingrid, method=0, scale=2, threshold=1):
+    """
+    Smoothing (ViGrA)
+
+    library: imagery_vigra  tool: 0
+
+    INPUTS
+        outgrid      [string] output smoothed grid
+        ingrid       [string] input grid
+        method       [int] filter type
+                      [0] exponential (default)
+                      [1] nonlinear
+                      [2] gaussian
+        scale        [int] size of smoothing filter
+        threshold    [float] edge threshold for nonlinear smoothing
+    """
+    # Inputs and outputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Validate parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 2], dtypes=[int])
+    scale, threshold = str(scale), str(threshold)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '0', '-OUTPUT', outgrid, '-INPUT', ingrid,
+           '-TYPE', method, '-SCALE', scale, '-EDGE', threshold]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, outgrid)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vigra_fourier_filter():
-    pass
+def vigra_edge_detection(outgrid, ingrid, method=0, scale=1, threshold=1):
+    """
+    Edge Detection (ViGrA)
+
+    library: imagery_vigra  tool: 1
+
+    INPUTS
+        outgrid      [string] output edge grid file
+        ingrid       [string] input grid
+        method       [int] edge detector type
+                      [0] Canny (default)
+                      [1] Shen-Castan
+        scale        [int, float] Operator scale
+        threshold    [int, float] Gradient threshold
+    """
+    # Inputs and outputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Validate parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
+    scale, threshold = str(scale), str(threshold)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '1', '-INPUT', ingrid, '-OUTPUT', outgrid,
+           '-TYPE', method, '-SCALE', scale, '-THRESHOLD', threshold]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, outgrid)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vigra_fourier_transform():
-    pass
+def vigra_morphological_filter(outgrid, ingrid, method=0, radius=1, rank=0.5, rescale=True):
+    """
+    Morphological Filter (ViGrA)
+
+    library: imagery_vigra  tool: 2
+
+    INPUTS
+        outgrid      [string] output filtered grid
+        ingrid       [string] input grid
+        method       [int] filter type
+                      [0] Dilation (default)
+                      [1] Erosion
+                      [2] Median
+                      [3] User defined rank
+        radius       [int] radius as number of cells
+        rank         [float] user defined rank for method=3
+        rescale      [bool] rescale values between 0-255. By default True
+    """
+    # Inputs and outputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Validate parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
+    rank = _validation.input_parameter(rank, 0.5, vrange=[0, 1], dtypes=[float])
+    radius, rescale = str(int(radius)), str(int(rescale))
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '2', '-OUTPUT', outgrid, '-INPUT', ingrid,
+           '-TYPE', method, '-RADIUS', radius, '-RANK', rank, '-RESCALE', rescale]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, outgrid)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vigra_fourier_transform_inv():
-    pass
+def vigra_fourier_transform(out_real, out_imag, ingrid, center=True):
+    """
+    Fourier Transform (ViGrA)
+
+    library: imagery_vigra  tool: 5
+
+    INPUTS
+        out_real     [string] output real grid
+        out_imag     [string] output imaginary grid
+        ingrid       [string] input grid
+        center       [bool] centered image. By default True
+    """
+    # Inputs and outputs
+    out_real = _validation.output_file(out_real, 'grid')
+    out_imag = _validation.output_file(out_imag, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Validate parameters
+    center = str(int(center))
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '5', '-INPUT', ingrid, '-REAL=', out_real,
+           '-IMAG', out_imag, '-CENTER', center]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, [out_imag, out_real])
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vigra_morphological_filter():
-    pass
+def vigra_fourier_transform_inv(outgrid, in_real, in_imag, center=True):
+    """
+    Fourier Transform Inverse (ViGrA)
+
+    library: imagery_vigra  tool: 6
+
+    INPUTS
+        outgrid      [string] output grid
+        in_real      [string] input real grid
+        in_imag      [string] input imaginary grid
+        center       [bool] centered image. By default True
+    """
+    # Inputs and outputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    in_real = _validation.input_file(in_real, 'grid', False)
+    in_imag = _validation.input_file(in_imag, 'grid', False)
+    # Validate parameters
+    center = str(int(center))
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '6', '-OUTPUT', outgrid, '-REAL=', in_real,
+           '-IMAG', in_imag, '-CENTER', center]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(in_real, outgrid)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
 
-def vigra_smoothing():
-    pass
+def vigra_fourier_filter(outgrid, ingrid, method=0, scale=2, power=0.5, vmin=0.1, vmax=0.9):
+    """
+    Fourier Filter (ViGrA)
 
+    library: imagery_vigra  tool: 8
+
+    INPUTS
+        outgrid      [string] output edge grid file
+        ingrid       [string] input grid
+        method       [int] filter type
+                      [0] gaussian (default)
+                      [1] power of distance
+                      [2] include range
+                      [3] exclude range
+        scale        [int, float] size of smoothing filter. Only for method=0
+        power        [int, float] power factor for method=1
+        vmin         [int, float] minimum value for method 2 and 3
+        vmax         [int, float] maximum value for method 2 and 3
+    """
+    # Inputs and outputs
+    outgrid = _validation.output_file(outgrid, 'grid')
+    ingrid = _validation.input_file(ingrid, 'grid', False)
+    # Validate parameters
+    method = _validation.input_parameter(method, 0, vrange=[0, 3], dtypes=[int])
+    vmin = _validation.input_parameter(vmin, 0.1, vrange=[0, 1], dtypes=[float])
+    vmax = _validation.input_parameter(vmax, 0.9, vrange=[0, 1], dtypes=[float])
+    scale, power = str(scale), str(power)
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'imagery_vigra', '8', '-INPUT', ingrid, '-OUTPUT', outgrid,
+           '-SCALE', scale, '-POWER', power, '-RANGE_MIN', vmin, '-RANGE_MAX', vmax,
+           '-FILTER', method]
+    # Run command
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(ingrid, outgrid)
+
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().f_code.co_name, _env.errlog))
 
