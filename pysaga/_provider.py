@@ -127,7 +127,9 @@ class SAGAEnvironment:
         else:
             cmd = ['saga_cmd', '-f=q', str(library), str(tool)]
         # Open commands virtual file
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)  # run cmd
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             universal_newlines=True)  # run cmd
         text = p.communicate()[0]
         print(text)  # print algorithms
 
@@ -139,6 +141,21 @@ class SAGAEnvironment:
          library      [string] library name
          tool         [int] tool number
          parameters   [dict] input parameters
+
+
+        EXAMPLE:
+        points = "points.shp"
+        polygons = "polygons.shp"
+        saveas = "points_clipped.shp"
+        params = {
+                  "points": points,
+                  "polygons": polygons,
+                  "clips": saveas,
+                  "field":
+                  "field_id",
+                  "method":"1"
+        }
+        environment.runalgorithm("shapes_points", 8, params)
         """
         # Check inputs
         if type(library) is not str:
@@ -149,7 +166,7 @@ class SAGAEnvironment:
             raise TypeError('Wrong parameters variable type!')
         # Create executable cmd
         cmd = ['saga_cmd', '-f=q', library, str(tool)]
-        for key, param in parameters.iteritems():
+        for key, param in parameters.items():
             cmd.extend(['-' + str(key).upper(), str(param)])
         # Run command
         self.run_command_logged(cmd);

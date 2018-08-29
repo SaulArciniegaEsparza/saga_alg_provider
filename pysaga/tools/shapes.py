@@ -935,6 +935,35 @@ def clip_points_with_polygons(output, points, polygons, field=0):
                                                   f_code.co_name, _env.errlog))
 
 
+def split_points_with_polygons(folder_out, basename, points, polygons, field=0):
+    """
+    Clip a point cloud using polygons. Similar to clip_points_with_polygons() but
+    int this case a vector layer is created for each polygon
+
+    library: shapes_points  tool: 8
+
+    INPUTS:
+     output    [string] output shape file with clipped points
+     points    [string] shape file of points
+     polygons  [string] shape file of polygons
+     field     [int,string] attribute id number or name of the
+                input polygon. By default 0
+    """
+    # Check inputs
+    output = _os.path.join(folder_out, basename)
+    points = _validation.input_file(points, 'vector', True)
+    polygons = _validation.input_file(polygons, 'vector', True)
+    # Run command
+    cmd = ['saga_cmd', '-f=q', 'shapes_points', '8', '-CLIPS', output, '-POINTS',
+           points, '-POLYGONS', polygons, '-FIELD', str(field), '-METHOD', '1']
+    flag = _env.run_command_logged(cmd)
+    # Check if output grid has crs file
+    _validation.validate_crs(points, [output])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
 def add_polygon_attributes_to_points(outshape, points, polygons, fields=0):
     """
     Retrieves for each point the selected attributes from those polygon, which contain the point.
@@ -1119,8 +1148,8 @@ def snap_points_to_grid(out_points, out_moves, points, grid, dist=0,
 
     # Convert to strings
     dist = str(dist)
-    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[0, 1])
-    extreme = _validation.input_parameter(extreme, 0, vrange=[0, 1], dtypes=[0, 1])
+    method = _validation.input_parameter(method, 0, vrange=[0, 1], dtypes=[int])
+    extreme = _validation.input_parameter(extreme, 0, vrange=[0, 1], dtypes=[int])
 
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '20', '-INPUT', points,
@@ -1745,43 +1774,97 @@ def merge_layers(outshape, shape_list, addsource=False, match=True):
                                                   f_code.co_name, _env.errlog))
 
 
-def select_by_attributes(saveas, inshape, expression):
+def select_by_attributes(saveas, inshape, num_expr=None, str_expr=None, method=0,
+                         sensitive=True, compare=1):
     """
     Select shapes by attributes and save them in a new shape file
 
-    library: shapes_tools  tool: 3, 6
+    library: shapes_tools  tool: 3, 4, 6
 
     INPUTS
-     saveas        [string] output selected features shapefile
-     inshape       [string] input shape file
-     expression    [string, pandas Serie] expression parameter can be a
-                    conditional string compatible with pandas, as example
-                    expression='(field_X > 100) and (field_Y <=200) '
-                    expression also can be a pandas serie with bool data type
+     saveas         [string] output selected features shapefile
+     inshape        [string] input shape file
+     num_expr       [dict] numerical expressions. To create one or more criteria
+                     you must create a dictionary with the attributes as keys and
+                     expressions as values, for example:
+                     {"FIELD1": "a > 100", 3: "and(a > 45, a < 100)"}
+                     Keys in dictionary can be strings with the field name or integers
+                     with the field id (starting from zero)
+     str_expr       [dict] string expressions. To create one or more criteria
+                     you must create a dictionary with the attributes as keys and
+                     expressions as values, for example:
+                     {"FIELD2": "RED", 5: "BIG"}
+                     Keys in dictionary can be strings with the field name or integers
+                     with the field id (starting from zero)
+     method         [int] multiple criteria method
+                     [0] add to current selection (default)
+                     [1] select from current selection
+                     [2] remove from current selection
+     sensitive      [bool] if True case sensitive for strings is used
+     compare        [int] Select if string expression...
+                     [0] attribute is identical with search expression
+                     [1] attribute contains search expression (default)
+                     [2] attribute is contained in search expression
+
+    Note: Expressions uses the same syntax that grid calculator
+    gt(x, y)         Returns true (1), if x is greater than y, else false (0)
+    x > y            Returns true (1), if x is greater than y, else false (0)
+    lt(x, y)         Returns true (1), if x is less than y, else false (0)
+    x < y            Returns true (1), if x is less than y, else false (0)
+    eq(x, y)         Returns true (1), if x equals y, else false (0)
+    x = y            Returns true (1), if x equals y, else false (0)
+    and(x, y)        Returns true (1), if both x and y are true (i.e. not 0)
+    or(x, y)         Returns true (1), if at least one of both x and y is true (i.e. not 0)
+    ifelse(c, x, y)  Returns x, if condition c is true (i.e. not 0), else y
     """
     # Check inputs
     saveas = _validation.output_file(saveas, 'vector')
     inshape = _validation.input_file(inshape, 'vector', True)
+
+    sensitive = str(int(sensitive))
+    compare = _validation.input_parameter(compare, 1, vrange=[0, 2], dtypes=[int])
+    method = int(method) + 1
+
     # Get expression
-    table = _tables.get_attribute_table(inshape)  # get attribute table
-    if type(expression) in (_Frame, _Serie):
-        if expression.dtype == 'bool':
-            table['COND'] = expression.astype('int')
-        else:
-            raise TypeError('Pandas serie must have data type bool')
-    elif type(expression) is str:
-        table['COND'] = 0  # create new field
-        cond = table.query(expression)
-        table.loc[cond.index, 'COND'] = 1  # set rows with expression True
-    else:
-        raise TypeError('Wrong expression data type <{}>'.format(type(expression)))
-    _tables.create_attribute_table(_files.default_file_ext(inshape, 'dbf'), table)
+    t = ''
+    if type(num_expr) is dict:
+        for key, value in num_expr.items():
+            if type(key) is int:
+                if len(t) == 0:
+                    t += ('\nshapes_tools 3 -SHAPES="{}" -FIELD={} -EXPRESSION={} -METHOD=0'
+                          .format(inshape, key, value))
+                else:
+                    t += ('\nshapes_tools 3 -SHAPES="{}" -FIELD={} -EXPRESSION="{}" -METHOD={}'
+                          .format(inshape, key, value, method))
+            else:
+                if len(t) == 0:
+                    t += ('\nshapes_tools 3 -SHAPES="{}" -FIELD="{}" -EXPRESSION="{}" -METHOD=0'
+                          .format(inshape, key, value))
+                else:
+                    t += ('\nshapes_tools 3 -SHAPES="{}" -FIELD="{}" -EXPRESSION="{}" -METHOD={}'
+                          .format(inshape, key, value, method))
+
+    if type(str_expr) is dict:
+        for key, value in str_expr.items():
+            if type(key) is int:
+                if len(t) == 0:
+                    t += ('\nshapes_tools 4 -SHAPES="{}" -FIELD={} -EXPRESSION="{}" -METHOD=0 -COMPARE={} -CASE={}'
+                          .format(inshape, key, value, compare, sensitive))
+                else:
+                    t += ('\nshapes_tools 4 -SHAPES="{}" -FIELD={} -EXPRESSION="{}" -METHOD={} -COMPARE={} -CASE={}'
+                          .format(inshape, key, value, method, compare, sensitive))
+            else:
+                if len(t) == 0:
+                    t += ('\nshapes_tools 4 -SHAPES="{}" -FIELD="{}" -EXPRESSION="{}" -METHOD=0 -COMPARE={} -CASE={}'
+                          .format(inshape, key, value, compare, sensitive))
+                else:
+                    t += ('\nshapes_tools 4 -SHAPES="{}" -FIELD="{}" -EXPRESSION="{}" -METHOD={} -COMPARE={} -CASE={}'
+                          .format(inshape, key, value, method, compare, sensitive))
+
     # Create batch file
-    t = 'shapes_tools 3 -SHAPES="{}" -FIELD="COND" -EXPRESSION="a = 1" -METHOD=0'
-    t += '\nshapes_tools 6 -INPUT="{}" -OUTPUT="{}"'
-    t = t.format(inshape, inshape, saveas)
-    filename = _os.path.join('batch.txt')
-    if _env.workdir is not None:
+    t += '\nshapes_tools 6 -INPUT="{}" -OUTPUT="{}"'.format(inshape, saveas)
+    filename = 'batch.txt'
+    if _env.workdir:
         filename = _os.path.join(_env.workdir, filename)
     with open(filename, 'w') as fid:
         fid.write(t)
@@ -1789,9 +1872,6 @@ def select_by_attributes(saveas, inshape, expression):
     cmd = ['saga_cmd', '-f=s', filename]
     # Run command
     flag = _env.run_command_logged(cmd)
-    # Delete temporal data
-    _os.remove(filename)
-    _tables.delete_fields(inshape, inshape, fields='COND')
     # Check if output grid has crs file
     _validation.validate_crs(inshape, [saveas])
     if not flag:
