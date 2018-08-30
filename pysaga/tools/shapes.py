@@ -1198,7 +1198,7 @@ def polygon_centroids(outshape, inshape, parts=False):
 
 
 def point_statistics_for_polygons(outpolygons, points, polygons, fields=0,
-                                  field_names=1, stats='Mean'):
+                                  field_names=1, stats="Mean"):
     """
     Calculates statistics over all points falling in a polygon
 
@@ -1295,8 +1295,7 @@ def convert_lines_to_polygons(outshape, inshape, single=True, merge=True):
 
 
 def polygon_dissolve(outshape, polygons, fields=None, keep_bounds=False, min_area=0,
-                     stat_fields=None, Sum=False, Mean=False, Min=False, Max=False, Range=False,
-                     Var=False, Std=False, Listing=False, Count=False, field_names=0):
+                     stat_fields=None, stats="mean", field_names=0):
     """
     Merges polygons, which share the same attribute value, and (optionally)
     dissolves borders between adjacent polygon parts. If no attribute or
@@ -1316,15 +1315,14 @@ def polygon_dissolve(outshape, polygons, fields=None, keep_bounds=False, min_are
      stat_fields   [int, str, list] index, name or list of fields for statistics
                     estimation for merged polygons. If stat_fields is None, fields
                     statistics are not computing
+     stats         [str, list, tuple] statistic or list of statistics to compute
+                    Valid statistics are: 'sum', 'mean' (default), 'min', 'max', 'range',
+                    'var', 'std', 'listing', 'count'
      field_names   [int] statistics fields names
                     [0] variable type + original name (default)
                     [1] original name + variable type
                     [2] original name
                     [3] variable type
-    Available fields and their default values: sum (Sum=False), mean (Mean=False),
-    minimum (Min=False), maximum (Max=False), range (Range=False), variance (Var=False)
-    standard deviation (Std=False), values list of merged polygons (Listing=False) (list is
-    separated with a0|a1|...|an), number of values of merged polygons (Count=False)
     """
     # Check inputs
     outshape = _validation.output_file(outshape, 'vector')
@@ -1351,24 +1349,39 @@ def polygon_dissolve(outshape, polygons, fields=None, keep_bounds=False, min_are
     # convert inputs to string
     keep_bounds = str(int(keep_bounds))
     min_area = str(min_area)
-    Sum, Mean, Min, Max = str(int(Sum)), str(int(Mean)), str(int(Min)), str(int(Max))
-    Range, Var, Std, Listing = str(int(Range)), str(int(Var)), str(int(Std)), str(int(Listing))
-    Count = str(int(Count))
     if field_names < 0 or field_names > 3:
         field_names = 0  # default value
     field_names = str(field_names)
+    # convert to strings
+    if field_names < 0 or field_names > 3:
+        field_names = 1  # default value
+    field_names = str(field_names)
+    # Check statistic
+    if type(stats) == str:
+        stats = [stats]
+    elif type(stats) not in (tuple, list):
+        raise TypeError('Input stats parameter must be a list/tuple or a string')
+    stats_names = ['SUM', 'MEAN', 'MIN', 'MAX', 'RANGE', 'STD', 'VAR', 'LISTING', 'COUNT']
+    stats_list = ['STAT_SUM', 'STAT_AVG', 'STAT_MIN', 'STAT_MAX', 'STAT_RNG', 'STAT_DEV',
+                  'STAT_VAR', 'STAT_LST', 'STAT_NUM']
+    default_stats = dict.fromkeys(stats_list, '0')
+    for key in stats:
+        if key.upper() in stats_names:
+            default_stats[stats_list[stats_names.index(key.upper())]] = '1'
+        else:
+            raise ValueError('Statistic {} is not available!'.format(key))
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_polygons', '5', '-POLYGONS', polygons,
            '-DISSOLVED', outshape, '-BND_KEEP', keep_bounds, '-STAT_FIELDS', stat_fields,
-           '-STAT_SUM', Sum, '-STAT_AVG', Mean, '-STAT_MIN', Min, '-STAT_MAX', Max,
-           '-STAT_RNG', Range, '-STAT_DEV', Std, '-STAT_VAR', Var, '-STAT_LST', Listing,
-           '-STAT_NUM', Count, '-STAT_NAMING', field_names]
+           '-STAT_NAMING', field_names]
     if _env.saga_version[0] in ['2', '3']:  # old version of SAGA GIS
         for i in range(min([3, len(fields)])):
             cmd.extend(['-FIELD_%d' % (i + 1), str(fields[i])])
-    elif _env.saga_version[0] in ['4', '5']:  # new version of SAGA GIS
+    elif _env.saga_version[0] in ['4', '5', '6']:  # new version of SAGA GIS
         fields = ','.join(fields)
         cmd.extend(['-FIELDS', fields, '-MIN_AREA', min_area])
+    for key, value in default_stats.items():  # set statistics
+        cmd.extend(['-' + key, value])
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output shape has crs file
@@ -2009,8 +2022,8 @@ def create_graticule(outshape, layer=None, gtype=1, dx=10, dy=10,
                                                   f_code.co_name, _env.errlog))
 
 
-def copy_shapes_by_location(outshape, inshape, extent_shape, condition=0,
-                            extent=0, overlap=50):
+def copy_shapes_by_location(outshape, inshape, extent_file, condition=0,
+                            extent=1, overlap=50):
     """
     Creates a new shapefile using the location of the shapes
 
@@ -2019,7 +2032,7 @@ def copy_shapes_by_location(outshape, inshape, extent_shape, condition=0,
     INPUTS
      outshape       [string] output shapefile
      inshape        [string] input shape to be selected
-     extent_shape   [string] shapefile to select the inshape geometries
+     extent_file    [string] shape file to select geometries
      condition      [int] conditional used by shapes selection
                      [0] completely contained
                      [1] intersects
@@ -2034,21 +2047,19 @@ def copy_shapes_by_location(outshape, inshape, extent_shape, condition=0,
     # Check inputs
     outshape = _validation.output_file(outshape, 'vector')
     inshape = _validation.input_file(inshape, 'vector', True)
-    extent_shape = _validation.input_file(extent_shape, 'vector', True)
+    extent_file = _validation.input_file(extent_file, 'vector', True)
     # Check parameters
     condition = _validation.input_parameter(condition, 0, vrange=[0, 2], dtypes=[int])
-    extent = _validation.input_parameter(extent + 2, 2, vrange=[2, 4], dtypes=[int])
+    extent = _validation.input_parameter(extent + 2, 2, vrange=[2, 3], dtypes=[int])
     overlap = str(overlap)
     # Create cmd
-    if _env.saga_version[0] in ['2']:  # method for old versions of SAGA
-        cmd = ['saga_cmd', '-f=q', 'shapes_tools', '13', '-SHAPES', inshape,
-               '-METHOD', condition, '-TARGET', extent, '-CUT', outshape,
-               '-SHAPES_SHAPES', extent_shape, '-POLYGONS_POLYGONS', extent_shape]
-    elif _env.saga_version[0] in ['3', '4', '5']:  # new versions of SAGA
-        cmd = ['saga_cmd', '-f=q', 'shapes_tools', '13', '-SHAPES', inshape,
-               '-METHOD', condition, '-EXTENT', extent, '-CUT', outshape,
-               '-OVERLAP', overlap, '-SHAPES_EXT', extent_shape,
-               '-POLYGONS', extent_shape]
+    cmd = ['saga_cmd', '-f=q', 'shapes_tools', '13', '-SHAPES', inshape,
+           '-METHOD', condition, '-EXTENT', extent, '-CUT', outshape,
+           '-OVERLAP', overlap]
+    if extent == '2':
+        cmd.extend(['-SHAPES_EXT', extent_file])
+    else:
+        cmd.extend(['-POLYGONS', extent_file])
     # Run command
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file

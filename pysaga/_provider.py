@@ -12,6 +12,7 @@ Mexico City
 import os
 import subprocess
 import time
+import tempfile
 
 
 class SAGAEnvironment:
@@ -33,6 +34,13 @@ class SAGAEnvironment:
 
     def __repr__(self):
         return('SAGAEnvironment')
+
+    def __str__(self):
+        t = "\n\nSAGA Version  : {}".format(self.saga_version)
+        t += "\nWorkdir path  : {}".format(self.workdir)
+        t += "\nLog file      : {}".format(self.stdlog)
+        t += "\nError registry : {}".format(self.errlog)
+        return(t)
 
     def get_saga_version(self):
         return(self.saga_version)
@@ -78,21 +86,24 @@ class SAGAEnvironment:
         """
         Define work directory. Log and Error files will be stored in the workdir,
         also some temporary files are created in the workdir folder
+        If workdir path does not exists, all folders are created to build work directory.
 
         INPUTS
          workdir    [string] work directory
         """
         self.workdir = workdir
-        if workdir is None:  # Set default workdir
-            self.stdlog = "saga_processing.log"
-            self.errlog = "saga_processing.error.log"
 
-        elif type(workdir) is str:  # Input workdir
-            # check if workdir exist
-            if not os.path.exists(workdir):
-                os.makedirs(workdir)  # create dir
-            self.stdlog = os.path.join(workdir, "processing.log")
-            self.errlog = os.path.join(workdir, "processing.error.log")
+        # define temporal directory
+        if type(self.workdir) is not str:
+            self.workdir = tempfile.gettempdir()
+
+        # check if workdir exist
+        if not os.path.exists(self.workdir):
+            os.makedirs(self.workdir)  # create dir
+
+        # create log and error files
+        self.stdlog = os.path.join(self.workdir, "processing.log")
+        self.errlog = os.path.join(self.workdir, "processing.error.log")
 
     def options(self, ovwlog=None):
         """
@@ -132,6 +143,28 @@ class SAGAEnvironment:
                              universal_newlines=True)  # run cmd
         text = p.communicate()[0]
         print(text)  # print algorithms
+
+    def print_log(self):
+        """
+        Print Log file in terminal
+        """
+        if not os.path.exists(self.stdlog):
+            print('Log file have been not created!')
+            return
+
+        with open(self.stdlog, 'r') as fid:
+            print(fid.read())
+
+    def print_errors(self):
+        """
+        Print errors file in terminal
+        """
+        if not os.path.exists(self.errlog):
+            print('Error file have been not created!')
+            return
+
+        with open(self.errlog, 'r') as fid:
+            print(fid.read())
 
     def runalgorithm(self, library, tool, parameters):
         """
