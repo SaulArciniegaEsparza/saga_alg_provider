@@ -123,7 +123,7 @@ def has_crs_file(filename):
     return(flag)
 
 
-def create_filename(path=None, ext='txt', basename='aux'):
+def create_filename(path=None, ext='txt', basename='temporal'):
     """
     Create a no repeated file name in a folder. Useful for model temporary files
 

@@ -2516,8 +2516,9 @@ def grids_from_classified_grid(outgrid, grid, table, field_id=0):
         names.remove(field_name)
 
         # temporary table file
-        filename = _files.create_filename(_env.workdir, 'txt',
-                                        'Auxiliar_grid_reclass')
+        filename = _files.create_filename(_env.workdir,
+                                          'txt',
+                                          'Auxiliar_grid_reclass')
         table.to_csv(filename, '\t', index=False)
 
     elif type(table) is str:  # Input table file
@@ -2577,9 +2578,9 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
                     in a shift in E direction and negative in W direction
      yoffset       [int, float] lower left corner in S-N. Positive values result
                     in a shift in N direction and negative in S direction
-     corner        [list, tuple, array] 4 element object tah defines the lower-left
+     corner        [list, tuple, array] 4 element object that defines the lower-left
                     corner of the grid system. corner must contain [xmin, cols, ymin, rows]
-     extent        [list, tuple, array] 4 element object tah defines the lower-left
+     extent        [list, tuple, array] 4 element object that defines the lower-left
                     corner and the upper-right corner of the grid system.
                     extent must contain [xmin, xmax, ymin, ymax]
      grids         [string, list, tuple] grid file or list of grid files to define the
@@ -2588,8 +2589,13 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
                     grid system extension
      proj          [string] proj4 parameters. If grids or shapes is input, proj is ignored
                     and first grid or shape is used as crs. By default proj is None
-    NOTE: first input parameter (corner, extent, grids, shapes) is used to define the
-    grid system extension
+
+    NOTE: Possible combinations to set grid system:
+        create_grid_system(outgrid, cellsize=cellsize, corner=(xmin, cols, ymin, rows))
+        create_grid_system(outgrid, cellsize=cellsize, extent=(xmin, xmax, ymin, ymax))
+        create_grid_system(outgrid, cellsize=cellsize, grids=(grid1, grid2, ...))
+        create_grid_system(outgrid, cellsize=cellsize, shapes=(shape1, shape2, ...))
+
     """
 
     # Check inputs
@@ -2616,7 +2622,7 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
         if len(corner) != 4:
             raise TypeError('corner must be a 4 element list, tuple or array')
 
-        xmin, cols, ymin, rows = [str(x) for x in extent]
+        xmin, cols, ymin, rows = [str(x) for x in corner]
 
         cmd.extend(['-M_EXTENT', '0', '-XMIN', xmin, '-NX', cols,
                     '-YMIN', ymin, '-NY', rows])
