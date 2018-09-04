@@ -2613,7 +2613,7 @@ def create_grid_system(outgrid, value=0, cellsize=10, adjust=0, xoffset=0, yoffs
 
     # Initialize cmd
     cmd = ['saga_cmd', '-f=q', 'grid_tools', '23', '-GRID', outgrid, '-INIT',
-           value, '-CELLSIZE', cellsize, '-ADJUST']
+           value, '-CELLSIZE', cellsize, '-ADJUST', adjust]
     if offset:
         cmd.extend(['-USEOFF', '1', '-XOFFSET', xoffset, '-YOFFSET', yoffset])
 
