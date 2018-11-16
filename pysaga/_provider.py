@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Environment management
 
@@ -7,6 +8,7 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 import os
@@ -36,10 +38,10 @@ class SAGAEnvironment:
         return('SAGAEnvironment')
 
     def __str__(self):
-        t = "\n\nSAGA Version  : {}".format(self.saga_version)
-        t += "\nWorkdir path  : {}".format(self.workdir)
-        t += "\nLog file      : {}".format(self.stdlog)
-        t += "\nError registry : {}".format(self.errlog)
+        t = "\n\nSAGA Version   : {}".format(self.saga_version)
+        t += "\nWorkdir path   : {}".format(self.workdir)
+        t += "\nLog file       : {}".format(self.stdlog)
+        t += "\nError registry  : {}".format(self.errlog)
         return(t)
 
     def get_saga_version(self):

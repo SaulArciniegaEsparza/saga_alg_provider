@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Climate tools:
     climate_tools
@@ -9,10 +10,14 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # env is the provider class
+# import modules
 import sys as _sys
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 

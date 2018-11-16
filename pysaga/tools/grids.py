@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Grids tools:
     grid_analysis
@@ -14,9 +15,11 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # env is the provider class
+# import modules
 import sys as _sys
 import os as _os
 import numpy as _np
@@ -25,6 +28,9 @@ import itertools as _itertools
 
 from . import projection as _projection
 from .tables import get_attribute_table as _get_attribute_table
+from ..data_manager import grids as _io
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type

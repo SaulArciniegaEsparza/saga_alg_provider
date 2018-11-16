@@ -1,14 +1,17 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Projection tools
     User osr tools
     pj_proj4
+
 
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # Import modules
@@ -16,6 +19,9 @@ import sys as _sys
 import os as _os
 import shutil as _shutil
 import numpy as _np
+
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 try:
     import osr as _osr

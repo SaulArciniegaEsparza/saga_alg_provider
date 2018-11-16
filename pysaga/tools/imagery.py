@@ -1,6 +1,8 @@
 """
-SAGA GIS algorithm provider
-Grid Imagery:
+==============================================================================
+SAGA GIS algorithm provider for python
+
+Grid Imagery Tools:
     imagery_classification
     imagery_maxent
     imagery_opencv
@@ -13,12 +15,16 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # env is the provider class
 import sys as _sys
 import os as _os
 import numpy as _np
+
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 

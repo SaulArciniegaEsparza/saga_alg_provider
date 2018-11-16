@@ -1,12 +1,15 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Gdal tools for raster analysis
+
 
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # env is the provider class
@@ -15,6 +18,10 @@ from copy import deepcopy as _deepcopy
 from collections import OrderedDict as _OrderedDict
 import numpy as _np
 import pandas as _pd
+
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
+from ..tools.projection import crs_from_epsg as _crs_from_epsg
 
 try:
     import gdal as _gdal

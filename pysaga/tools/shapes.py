@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Shapes tools
     shapes_grid
@@ -13,6 +14,7 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # Import modules
@@ -23,6 +25,9 @@ from collections import OrderedDict as _OrderedDict
 
 from . import projection as _projection
 from . import tables as _tables
+from ..data_manager import grids as _io
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type
@@ -118,7 +123,7 @@ def grid_statistics_for_polygons(outshape, polygons, grid, method=0, naming=1,
     quantile = str(quantile)
     parallel = str(int(parallel))
     # Check statistic
-    if type(stats) == str:
+    if type(stats) is str:
         stats = [stats]
     elif type(stats) not in (tuple, list):
         raise TypeError('Input stats parameter must be a list/tuple or a string')

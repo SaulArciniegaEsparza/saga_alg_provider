@@ -1,18 +1,24 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Auxiliary functions for user tools
+
 
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
-
+# import modules
 import numpy as _np
 from scipy.sparse import lil_matrix as _lil_matrix
 from scipy.sparse import eye as _eye
+
+from ..data_manager import grids as _io
+from ..utilities import files as _files
 
 
 # ==============================================================================

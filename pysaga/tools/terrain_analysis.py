@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Terrain Analysis tools
     ta_channels
@@ -13,6 +14,7 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # env is the provider class
@@ -25,6 +27,8 @@ import numpy as _np
 from . import tables as _tables
 from . import shapes as _shapes
 from . import grids as _grids
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _ERROR_TEXT = ('Error running "{}()", please check the error file: {}')
 
@@ -135,6 +139,49 @@ def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     _validation.validate_crs(dem, [outgrid])
+    if not flag:
+        raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
+                                                  f_code.co_name, _env.errlog))
+
+
+def watershed_basins_extended(basins, subbasins, basinsv, subbasinsv, heads,
+                              mouths, indem, inchannels, distance=False):
+    """
+    Extended watershed basin analysis.
+    Watershed Basins delimitation using a dem ad channel network.
+
+    library: ta_channels  tool: 2
+
+    INPUTS:
+     basins        [string] output basins grid file (.sgrd)
+     subbasins     [string] output subbasins grid file (.sgrd)
+     basinsv       [string] output basins vector file (.shp)
+     subbasinsv    [string] output subbasins vector file (.shp)
+     heads         [string] output points of basins head (.shp)
+     mouths        [string] output points of basins mouth (.shp)
+     indem         [string] input dem grid (.sgrd or .tif)
+     inchannels    [string] input channel network grid (.sgrd or .tif)
+     distance      [bool] if True, distance grids are saved
+    """
+    # Check inputs
+    basins = _validation.output_file(basins, 'grid')
+    subbasins = _validation.output_file(subbasins, 'grid')
+    basinsv = _validation.output_file(basinsv, 'vector')
+    subbasinsv = _validation.output_file(subbasinsv, 'vector')
+    heads = _validation.output_file(heads, 'vector')
+    mouths = _validation.output_file(mouths, 'vector')
+
+    dem = _validation.input_file(indem, 'grid', False)
+    channels = _validation.input_file(inchannels, 'grid', False)
+    # Check parameters
+    distance = str(int(distance))
+    # Create cmd
+    cmd = ['saga_cmd', '-f=q', 'ta_channels', '2', '-DEM', dem,
+           '-CHANNELS', channels, '-BASINS', basins, '-SUBBASINS', subbasins,
+           '-V_BASINS', basinsv, '-V_SUBBASINS', subbasinsv, '-HEADS',
+           heads, '-MOUTHS', mouths, '-DISTANCE', distance]
+    # Run command
+    flag = _env.run_command_logged(cmd)
     if not flag:
         raise EnvironmentError(_ERROR_TEXT.format(_sys._getframe().
                                                   f_code.co_name, _env.errlog))

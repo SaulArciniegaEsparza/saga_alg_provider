@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Attribute tables tools
     user tools
@@ -10,6 +11,7 @@ Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # Import modules
@@ -18,6 +20,9 @@ import os as _os
 import pandas as _pd
 import numpy as _np
 import shapefile as _shp
+
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 _Frame = type(_pd.DataFrame())  # get pandas DataFrame Type
 _Serie = type(_pd.Series())     # get pandas Serie Type

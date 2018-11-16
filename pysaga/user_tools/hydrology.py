@@ -1,15 +1,18 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 User defined methods used in
 
 User tools needs gdal and osr
 User tools can work with memory layers
 
+
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # Import modules
@@ -18,7 +21,9 @@ import numpy as _np
 from scipy.sparse.linalg import spsolve as _spsolve
 
 from . import methods as _methods
-
+from ..data_manager import grids as _io
+from ..utilities import files as _files
+from ..utilities import data_validation as _validation
 
 # ==============================================================================
 # Hydrology analysis methods

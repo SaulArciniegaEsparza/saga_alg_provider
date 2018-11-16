@@ -1,4 +1,5 @@
 """
+==============================================================================
 SAGA GIS algorithm provider
 Initialization of SAGA algorithm provider
 
@@ -9,6 +10,7 @@ STRUCTURE:
     tools
         climate
         grids
+        geostatistics
         imagery
         import_export
         projection
@@ -25,11 +27,25 @@ STRUCTURE:
         files
 
 
+
+How to start?
+First define your python environment directory where saga_cmd is stored
+
+ENV = '.../saga-6.4.0_x64/'
+from pysaga import environment as env
+env.set_env(ENV)
+
+then a message must appear showing the saga version:
+
+SAGA Version: 6.4.0 (64 bit)
+
+
 Author:
 Saul Arciniega Esparza
 zaul.ae@gmail.com
 Institute of Engineering of UNAM
 Mexico City
+==============================================================================
 """
 
 # Import modules
@@ -40,54 +56,19 @@ from . import user_tools
 from . import utilities
 
 # Define environment
+# environment is the system manager for SAGA algorithms from console
+# environment must be defined when pysaga starts
 environment = _SAGAenv()
 
-# Set environment
-tools.climate._env = environment
-tools.grids._env = environment
-tools.imagery._env = environment
-tools.import_export._env = environment
-tools.projection._env = environment
-tools.shapes._env = environment
-tools.tables._env = environment
+# Set environment to access SAGA tools libraries
+# environment is shared between all libraries
+tools.climate._env          = environment
+tools.grids._env            = environment
+tools.geostatistics._env    = environment
+tools.imagery._env          = environment
+tools.import_export._env    = environment
+tools.projection._env       = environment
+tools.shapes._env           = environment
+tools.tables._env           = environment
 tools.terrain_analysis._env = environment
-
-# Set GridObj
-tools.grids._io = data_manager.grids
-tools.import_export._io = data_manager.grids
-tools.shapes._io = data_manager.grids
-
-user_tools.hydrology._io = data_manager.grids
-user_tools.methods._io = data_manager.grids
-
-# Set utilities.files as _files
-tools.climate._files = utilities.files
-tools.grids._files = utilities.files
-tools.imagery._files = utilities.files
-tools.import_export._files = utilities.files
-tools.projection._files = utilities.files
-tools.shapes._files = utilities.files
-tools.tables._files = utilities.files
-tools.terrain_analysis._files = utilities.files
-
-user_tools.methods._files = utilities.files
-user_tools.hydrology._files = utilities.files
-data_manager.grids._files = utilities.files
-
-# Set utilities.data_validation as _validation
-tools.climate._validation = utilities.data_validation
-tools.grids._validation = utilities.data_validation
-tools.imagery._validation = utilities.data_validation
-tools.import_export._validation = utilities.data_validation
-tools.projection._validation = utilities.data_validation
-tools.shapes._validation = utilities.data_validation
-tools.tables._validation = utilities.data_validation
-tools.terrain_analysis._validation = utilities.data_validation
-
-user_tools.hydrology._validation = utilities.data_validation
-data_manager.grids._validation = utilities.data_validation
-
-# Set projection methods
-data_manager.grids._files = utilities.files
-data_manager.grids._crs_from_epsg = tools.projection.crs_from_epsg
 
