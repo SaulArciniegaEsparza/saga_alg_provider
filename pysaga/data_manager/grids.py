@@ -499,32 +499,29 @@ class GridObj(object):
             data.index.name = 'band'
         return(data)  # get_pixel_values()
 
-    def get_data(self, bands=1, extent=None, asindex=False, dtype=float):
+    def get_data(self, band=1, extent=None, asindex=False, dtype=float):
         """
         Get raster values as arrays from one bands or multiple bands
 
         INPUTS
-         bands     [int, list] band number or list of band numbers
+         band      [int] band number
          extent    [list] grid extent with cells number or coordinates [xmin, xmax, ymin, ymax]
          asindex   [bool] if True, extension is used as [xoff, cols, yoff, rows] where
                     the xoff and yoff are the indexes of the upper left pixel, and
                     rows and cols are the number of cells that will be considered
                     moving to the down-right direction
          dtype     [type] data type. By default float
+
         OUTPUT
-         data      [np.array] output numpy array. If bands is a list, output data is
-                    a 3 dimensional array
+         data      [np.array] output numpy array
         """
         if type(self.driver) is not _gdal.Dataset:  # it is a valid gdal dataset?
             raise TypeError('You must connect with a raster file!')
 
         # Check inputs
-        if type(bands) == int:
-            bands = _np.array([bands], dtype=int)
-        elif type(bands) in [list, tuple, _np.ndarray]:
-            bands = _np.array(bands, dtype=int)
-        else:
-            raise TypeError('Bad bands type {}!'.format(str(type(bands))))
+        if type(band) is not int:
+            raise TypeError('band must be an integer!')
+        assert 1 <= band <= self.bands, 'Wrong band number'
 
         # Check input extent
         if extent is None:
@@ -555,27 +552,17 @@ class GridObj(object):
         else:
             raise TypeError('Bad extent type {}!'.format(str(type(extent))))
         # Get raster data
-        bands = _np.unique(_np.sort(bands))
-        data = _np.full((max(bands), ysize, xsize), _np.nan, dtype=dtype)
+        # verify raster band
 
-        for i in range(len(bands)):
-            # verify raster band
-            assert 1 <= bands[i] <= self.bands
-            # get raster band
-            band = self.driver.GetRasterBand(bands[i])
-            if band is None:  # band is empty
-                continue
-            values = band.ReadAsArray(xoff, yoff, xsize, ysize).astype(dtype)
-            nodata = band.GetNoDataValue()  # no data values
-            values[values == nodata] = _np.nan  # change nan values
-            # save data
-            data[i, :, :] = values
+        # get raster band
+        layer_band = self.driver.GetRasterBand(band)
+        if layer_band is None:  # band is empty
+            return(_np.array([]))
+        data = layer_band.ReadAsArray(xoff, yoff, xsize, ysize).astype(dtype)
+        nodata = layer_band.GetNoDataValue()  # no data values
+        data[data == nodata] = _np.nan  # change nan values
         # Output array
-        if len(bands) == 1:
-            return(data[0, :, :])
-        else:
-            return(data)
-        # get_data()
+        return(data)
 
     def set_data(self, data, band=1, row=0, col=0):
         """

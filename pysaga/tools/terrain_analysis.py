@@ -666,7 +666,7 @@ def burn_stream_network_into_dem(outdem, dem, streams, flowdir=None,
     INPUTS
      outdem      [string] output processed grid dem (.sgrd)
      dem         [string] input grid dem (.sgrd or .tif)
-     streams     [string] input grid os hapefile streams network (.sgrd or .tif).
+     streams     [string] input grid or shape file streams network.
                   If streams is a shapefile it must have .shp extension
      flowdir     [string] optional flow direction. Only applies if method=2
      method      [int] burn stream network method

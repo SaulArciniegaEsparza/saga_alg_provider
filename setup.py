@@ -18,7 +18,6 @@ setup(
         'Intended Audience :: Engineering software',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6'],
     install_requires=['numpy',
                       'scipy',
