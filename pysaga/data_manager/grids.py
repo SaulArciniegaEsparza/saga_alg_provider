@@ -404,8 +404,6 @@ class GridObj(object):
             points[:, 0] -= width / 2.0
             points[:, 1] += height / 2.0
         
-        print(points)
-        
         cols = _np.array(_np.round((points[:, 0] - origin[0]) / width), dtype=int)
         rows = _np.array(_np.round((origin[1] - points[:, 1]) / height), dtype=int)
         
@@ -422,7 +420,7 @@ class GridObj(object):
             cols[cols > (self.xsize - 1)] = self.xsize - 1
         
         # Return pixels
-        pixels = _np.array(zip(rows, cols), dtype=int)
+        pixels = _np.array(list(zip(rows, cols)), dtype=int)
         return(pixels)  # coor2pixel()
 
     def get_pixel_value(self, pixels, bands=1, dtype=float):
@@ -590,6 +588,8 @@ class GridObj(object):
         assert 0 <= row <= self.ysize - nr, 'row is out of the array dimension'
         assert 0 <= col <= self.xsize - nc, 'col is out of the array dimension'
 
+        # Set nodata
+        data[_np.isnan(data)] = self.get_nodata(band)
         # Write data in band
         band_data = self.driver.GetRasterBand(band)  # get band
         band_data.WriteArray(data, col, row)  # write data
@@ -1252,6 +1252,6 @@ def cell_with_value(data):
 
     # Get rows and cols with data
     rows, cols = _np.where(~_np.isnan(data))
-    pixels = _np.array(zip(rows, cols), dtype=int)
+    pixels = _np.array(list(zip(rows, cols)), dtype=int)
     return(pixels)  # cell_with_value()
 

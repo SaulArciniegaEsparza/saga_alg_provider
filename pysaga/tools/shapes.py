@@ -254,9 +254,9 @@ def clip_grid_with_polygons(outgrid, ingrid, polygon, extent=2):
                  [2] crop to data (default)
     """
     # Check inputs
-    outgrid = _validation.output_file(outgrid, 'vector')
+    outgrid = _validation.output_file(outgrid, 'grid')
     ingrid = _validation.input_file(ingrid, 'grid', False)
-    polygon = _validation.input_file(polygon, 'grid', True)
+    polygon = _validation.input_file(polygon, 'vector', False)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_grid', '7', '-INPUT', ingrid, '-OUTPUT',
            outgrid, '-POLYGONS', polygon]
