@@ -521,6 +521,7 @@ class GridObj(object):
             raise TypeError('band must be an integer!')
         assert 1 <= band <= self.bands, 'Wrong band number'
 
+
         # Check input extent
         if extent is None:
             # Default range of pixels
@@ -550,14 +551,13 @@ class GridObj(object):
         else:
             raise TypeError('Bad extent type {}!'.format(str(type(extent))))
         # Get raster data
-        # verify raster band
 
         # get raster band
-        layer_band = self.driver.GetRasterBand(band)
-        if layer_band is None:  # band is empty
+        band_layer = self.driver.GetRasterBand(band)
+        if band_layer is None:  # band is empty
             return(_np.array([]))
-        data = layer_band.ReadAsArray(xoff, yoff, xsize, ysize).astype(dtype)
-        nodata = layer_band.GetNoDataValue()  # no data values
+        data = band_layer.ReadAsArray(xoff, yoff, xsize, ysize).astype(dtype)
+        nodata = band_layer.GetNoDataValue()  # no data values
         data[data == nodata] = _np.nan  # change nan values
         # Output array
         return(data)
