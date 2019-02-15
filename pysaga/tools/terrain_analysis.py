@@ -127,7 +127,7 @@ def watershed_basins(outgrid, dem, channels, minsize=0, sinkroute=None):
         sinkroute = 'NULL'
     else:
         sinkroute = _validation.input_file(sinkroute, 'grid', False)
-    # restringe minsize
+    # minimum minsize
     if minsize < 0:
         minsize = 0
     minsize = str(minsize)
