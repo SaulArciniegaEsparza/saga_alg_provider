@@ -56,22 +56,26 @@ def crs_from_epsg(code, asproj4=False):
         crs = crs.ExportToProj4()
     else:
         crs = crs.ExportToWkt()
-    return(crs)
+    return crs
 
 
-def reproject_points(points, in_crs, out_crs):
+def reproject_points(points, in_crs, out_crs, stype=0):
     """
     Reprojection of points using _osr
 
     INPUTS
      points       [list, tuple, np.ndarray] [x, y] point array
-                   For multiple points use [[x1, y1], [x2, y2], ...]
+                    For multiple points use [[x1, y1], [x2, y2], ...]
      in_crs       [int, str] input coordinate reference system
-                   If in_crs is an integer it is used as EPSG code
-                   If in_crs can be a wkt string
+                    If in_crs is an integer it is used as EPSG code
+                    If in_crs can be a wkt string
      out_crs      [int, str] output coordinate reference system
-                   If in_crs is an integer it is used as EPSG code
-                   If in_crs can be a wkt string
+                    If in_crs is an integer it is used as EPSG code
+                    If in_crs can be a wkt string
+     stype        [int] spatial reference type
+                    [0] in_crs and out_crs as epsg code (integer)
+                    [1] in_crs and out_crs as wkt (string)
+                    [2] in_crs and out_crs as proj4 (string)
     OUTPUTS
      newpoints     output numpy array with transformed points
     """
@@ -87,21 +91,29 @@ def reproject_points(points, in_crs, out_crs):
     else:
         raise TypeError('Bad points parameter type {}'.format(str(type(points))))
 
-    if type(in_crs) is int:
+    if type(in_crs) is int and stype == 0:
         in_crs = crs_from_epsg(in_crs)
     elif type(in_crs) != str:
         raise TypeError('Bad in_crs parameter type {}'.format(str(type(in_crs))))
 
-    if type(out_crs) is int:
+    if type(out_crs) is int and stype == 0:
         out_crs = crs_from_epsg(out_crs)
     elif type(out_crs) != str:
         raise TypeError('Bad out_crs parameter type {}'.format(str(type(out_crs))))
 
+    if stype == 0:
+        stype = 1
+
     # Spatial reference
     crsin = _osr.SpatialReference()
-    crsin.ImportFromWkt(in_crs)
     crsout = _osr.SpatialReference()
-    crsout.ImportFromWkt(out_crs)
+
+    if stype == 1:
+        crsin.ImportFromWkt(in_crs)
+        crsout.ImportFromWkt(out_crs)
+    elif stype == 2:
+        crsin.ImportFromProj4(in_crs)
+        crsout.ImportFromWkt(out_crs)
 
     # Create geometry and transform
     newpoints = []  # output points
@@ -114,7 +126,7 @@ def reproject_points(points, in_crs, out_crs):
 
     # Output array
     newpoints = _np.array(newpoints)
-    return(newpoints)
+    return newpoints
 
 
 # ==============================================================================
