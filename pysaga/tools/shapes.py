@@ -714,7 +714,7 @@ def line_smoothing(outshape, inshape, method=2, sigma=2, sensitivity=3,
 # ==============================================================================
 
 
-def convert_table_to_points(output, table, X, Y, Z=None, proj=None,
+def convert_table_to_points(output, table, x, y, z=None, proj=None,
                             proj_file=None):
     """
     Create points shape from table using X, Y, Z fields
@@ -733,14 +733,14 @@ def convert_table_to_points(output, table, X, Y, Z=None, proj=None,
     """
     # Check inputs
     output = _validation.output_file(output, 'vector')
-    if Z is None:
-        Z = '-1'
+    if z is None:
+        z = '-1'
     else:
-        Z = str(Z)
-    X, Y = str(X), str(Y)
+        z = str(z)
+    x, y = str(x), str(y)
     # Create cmd
     cmd = ['saga_cmd', '-f=q', 'shapes_points', '0', '-POINTS', output,
-           '-TABLE', table, '-X', X, '-Y', Y, '-Z', Z]
+           '-TABLE', table, '-X', x, '-Y', y, '-Z', z]
     flag = _env.run_command_logged(cmd)
     # Check if output grid has crs file
     if proj is not None:

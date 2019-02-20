@@ -113,7 +113,7 @@ def reproject_points(points, in_crs, out_crs, stype=0):
         crsout.ImportFromWkt(out_crs)
     elif stype == 2:
         crsin.ImportFromProj4(in_crs)
-        crsout.ImportFromWkt(out_crs)
+        crsout.ImportFromProj4(out_crs)
 
     # Create geometry and transform
     newpoints = []  # output points
@@ -166,7 +166,7 @@ def set_crs(grids=None, shapes=None, precise=False, crs_method=0,
     # check grids
     if grids is None:
         grids = 'NULL'
-    if type(grids) is str:
+    elif type(grids) is str:
         grids = [_validation.input_file(grids, 'grid', False)]
     elif type(grids) in [list, tuple]:
         grids = _validation.input_file(grids, 'grid', False)
