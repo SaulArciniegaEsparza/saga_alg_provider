@@ -661,8 +661,8 @@ def calculator(outgrid, grids, formula='g1 + 1', hgrids=None,
     if type(formula) is not str:
         raise TypeError('Wrong formula type <{}>'.format(type(formula)))
     # Check data type
-    data_type = _validation.input_parameter(data_type, 7, vrange=[0, 8], dtype=[int])
-    resampling = _validation.input_parameter(resampling, 3, vrange=[0, 3], dtype=[int])
+    data_type = _validation.input_parameter(data_type, 7, vrange=[0, 8], dtypes=[int])
+    resampling = _validation.input_parameter(resampling, 3, vrange=[0, 3], dtypes=[int])
     nodata = str(int(use_nodata))
 
     # Create cmd
